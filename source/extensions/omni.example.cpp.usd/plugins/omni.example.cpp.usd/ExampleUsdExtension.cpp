@@ -26,17 +26,10 @@
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdUtils/stageCache.h>
 
-#include <usdrt/scenegraph/usd/usd/stage.h>
-#include <usdrt/scenegraph/usd/usd/prim.h>
-#include <usdrt/scenegraph/usd/rt/xformable.h>
-#include <usdrt/scenegraph/usd/sdf/path.h>
-#include <usdrt/scenegraph/base/gf/vec3d.h>
-#include <usdrt/scenegraph/base/gf/quatf.h>
-
 #include <vector>
 
 const struct carb::PluginImplDesc pluginImplDesc = { "omni.example.cpp.usd.plugin",
-                                                     "An example C++ USDRT extension.", "NVIDIA",
+                                                     "An example C++ extension.", "NVIDIA",
                                                      carb::PluginHotReload::eEnabled, "dev" };
 
 namespace omni
@@ -60,6 +53,60 @@ protected:
         {
             return;
         }
+
+        constexpr int numPrimsToCreate = 9;
+        const float rotationIncrement = 360.0f / (numPrimsToCreate - 1);
+        for (int i = 0; i < numPrimsToCreate; ++i)
+        {
+            // Create a cube prim.
+            const PXR_NS::SdfPath primPath("/World/example_prim_" + std::to_string(i));
+            if (m_stage->GetPrimAtPath(primPath))
+            {
+                // A prim already exists at this path.
+                continue;
+            }
+            PXR_NS::UsdPrim prim = m_stage->DefinePrim(primPath, PXR_NS::TfToken("Cube"));
+
+            // Set the size of the cube prim.
+            const double cubeSize = 0.5 / PXR_NS::UsdGeomGetStageMetersPerUnit(m_stage);
+            prim.CreateAttribute(PXR_NS::TfToken("size"), PXR_NS::SdfValueTypeNames->Double).Set(cubeSize);
+
+            // Leave the first prim at the origin and position the rest in a circle surrounding it.
+            if (i == 0)
+            {
+                m_primsWithRotationOps.push_back({ prim });
+            }
+            else
+            {
+                PXR_NS::UsdGeomXformable xformable = PXR_NS::UsdGeomXformable(prim);
+
+                // Setup the global rotation operation.
+                const float initialRotation = rotationIncrement * static_cast<float>(i);
+                PXR_NS::UsdGeomXformOp globalRotationOp = xformable.AddRotateYOp(PXR_NS::UsdGeomXformOp::PrecisionFloat);
+                globalRotationOp.Set(initialRotation);
+
+                // Setup the translation operation.
+                const PXR_NS::GfVec3f translation(0.0f, 0.0f, cubeSize * 4.0f);
+                xformable.AddTranslateOp(PXR_NS::UsdGeomXformOp::PrecisionFloat).Set(translation);
+
+                // Setup the local rotation operation.
+                PXR_NS::UsdGeomXformOp localRotationOp = xformable.AddRotateXOp(PXR_NS::UsdGeomXformOp::PrecisionFloat);
+                localRotationOp.Set(initialRotation);
+
+                // Store the prim and rotation ops so we can update them later in animatePrims().
+                m_primsWithRotationOps.push_back({ prim, localRotationOp, globalRotationOp });
+            }
+        }
+
+        // Subscribe to timeline events so we know when to start or stop animating the prims.
+        if (omni::timeline::ITimeline* timeline = omni::timeline::getTimeline())
+        {
+            m_timelineEventsSubscription = carb::events::createSubscriptionToPop(
+                timeline->getTimelineEventStream(),
+                [this](carb::events::IEvent* timelineEvent) {
+                onTimelineEvent(static_cast<omni::timeline::TimelineEventType>(timelineEvent->type));
+            });
+        }
     }
 
     void removePrims() override
@@ -73,6 +120,13 @@ protected:
         PXR_NS::TfNotice::Revoke(m_usdNoticeListenerKey);
         m_timelineEventsSubscription = nullptr;
         m_updateEventsSubscription = nullptr;
+
+        // Remove all prims.
+        for (auto& primWithRotationOps : m_primsWithRotationOps)
+        {
+            m_stage->RemovePrim(primWithRotationOps.m_prim.GetPath());
+        }
+        m_primsWithRotationOps.clear();
     }
 
     void printStageInfo() const override
@@ -129,55 +183,22 @@ protected:
         if (stageId)
         {
             m_stage = PXR_NS::UsdUtilsStageCache::Get().Find(PXR_NS::UsdStageCache::Id::FromLongInt(stageId));
-            m_rtStage = usdrt::UsdStage::Attach({static_cast<uint64_t>(stageId)});
-            m_lastUpdateIndex = 0;
             m_usdNoticeListenerKey = PXR_NS::TfNotice::Register(PXR_NS::TfCreateWeakPtr(this), &ExampleCppUsdExtension::onObjectsChanged);
-
-            if (m_instanceGeoPaths.empty())
-            {
-                const std::vector<std::string> assetTypes = {
-                    "Cone", "Cube", "Disk", "Sphere", "Torus"
-                };
-
-                for (size_t i=0; i<250000; ++i)
-                {
-                    const int factorySector = (int)floor((float)i/1000.0f);
-                    std::string pathStr = "/World/Factory_";
-                    pathStr += std::to_string(factorySector);
-                    pathStr += "/Asset_";
-                    pathStr += std::to_string(i);
-                    pathStr += "/";
-                    pathStr += assetTypes[i%5];
-                    const usdrt::SdfPath path(pathStr);
-                    m_instanceGeoPaths.push_back(path);
-                }
-            }
-
-            // Do all prefetch up front
-            m_instanceGeoPrims.clear();
-            m_instanceGeoPrims.reserve(250000);
-            for (const usdrt::SdfPath& path: m_instanceGeoPaths)
-            {
-                m_instanceGeoPrims.push_back(m_rtStage->GetPrimAtPath(path));
-            }
-
-            std::cout << "prefetched all prims" << std::endl;
-
-            // Subscribe to timeline events so we know when to start or stop animating the prims.
-            if (auto timeline = omni::timeline::getTimeline())
-            {
-                m_timelineEventsSubscription = carb::events::createSubscriptionToPop(
-                    timeline->getTimelineEventStream(),
-                    [this](carb::events::IEvent* timelineEvent) {
-                    onTimelineEvent(static_cast<omni::timeline::TimelineEventType>(timelineEvent->type));
-                });
-            }
         }
     }
 
     void onObjectsChanged(const PXR_NS::UsdNotice::ObjectsChanged& objectsChanged)
     {
-
+        // Check whether any of the prims we created have been (potentially) invalidated.
+        // This may be too broad a check, but handles prims being removed from the stage.
+        for (auto& primWithRotationOps : m_primsWithRotationOps)
+        {
+            if (!primWithRotationOps.m_invalid &&
+                objectsChanged.ResyncedObject(primWithRotationOps.m_prim))
+            {
+                primWithRotationOps.m_invalid = true;
+            }
+        }
     }
 
     void onTimelineEvent(omni::timeline::TimelineEventType timelineEventType)
@@ -210,8 +231,6 @@ protected:
             return;
         }
 
-        std::cout << "start animating prims" << std::endl;
-
         // Subscribe to update events so we can animate the prims.
         if (omni::kit::IApp* app = carb::getCachedInterface<omni::kit::IApp>())
         {
@@ -224,8 +243,6 @@ protected:
 
     void stopAnimatingPrims()
     {
-        std::cout << "stop animating prims" << std::endl;
-
         m_updateEventsSubscription = nullptr;
         onUpdateEvent(); // Reset positions.
     }
@@ -239,20 +256,28 @@ protected:
             return;
         }
 
-        for (size_t i = 0; i < 10000; ++i)
+        // Update the value of each local and global rotation operation to (crudely) animate the prims around the origin.
+        const size_t numPrims = m_primsWithRotationOps.size();
+        const float initialLocalRotationIncrement = 360.0f / (numPrims - 1); // Ignore the first prim at the origin.
+        const float initialGlobalRotationIncrement = 360.0f / (numPrims - 1); // Ignore the first prim at the origin.
+        const float currentAnimTime = omni::timeline::getTimeline()->getCurrentTime() * m_stage->GetTimeCodesPerSecond();
+        for (size_t i = 1; i < numPrims; ++i) // Ignore the first prim at the origin.
         {
-            const size_t index = (m_lastUpdateIndex + i) % 250000;
-            usdrt::UsdPrim prim = m_instanceGeoPrims[index];
-            usdrt::RtXformable xformable(prim);
-            usdrt::UsdAttribute attr = xformable.GetWorldPositionAttr();
-            usdrt::GfVec3d pos;
-            attr.Get(&pos);
-            pos[1] = (double)((std::rand()%200) - 100);
-            attr.Set(pos);
-            xformable.GetWorldOrientationAttr().Set(usdrt::GfQuatf(1));
-        }
+            if (m_primsWithRotationOps[i].m_invalid)
+            {
+                continue;
+            }
 
-        m_lastUpdateIndex = (m_lastUpdateIndex + 10000) % 250000;
+            PXR_NS::UsdGeomXformOp& localRotationOp = m_primsWithRotationOps[i].m_localRotationOp;
+            const float initialLocalRotation = initialLocalRotationIncrement * static_cast<float>(i);
+            const float currentLocalRotation = initialLocalRotation + (360.0f * (currentAnimTime / 100.0f));
+            localRotationOp.Set(currentLocalRotation);
+
+            PXR_NS::UsdGeomXformOp& globalRotationOp = m_primsWithRotationOps[i].m_globalRotationOp;
+            const float initialGlobalRotation = initialGlobalRotationIncrement * static_cast<float>(i);
+            const float currentGlobalRotation = initialGlobalRotation - (360.0f * (currentAnimTime / 100.0f));
+            globalRotationOp.Set(currentGlobalRotation);
+        }
     }
 
 private:
@@ -265,12 +290,8 @@ private:
     };
 
     PXR_NS::UsdStageRefPtr m_stage;
-    usdrt::UsdStageRefPtr m_rtStage;
     PXR_NS::TfNotice::Key m_usdNoticeListenerKey;
-    size_t m_lastUpdateIndex;
     std::vector<PrimWithRotationOps> m_primsWithRotationOps;
-    std::vector<usdrt::SdfPath> m_instanceGeoPaths;
-    std::vector<usdrt::UsdPrim> m_instanceGeoPrims;
     carb::events::ISubscriptionPtr m_updateEventsSubscription;
     carb::events::ISubscriptionPtr m_timelineEventsSubscription;
 };
