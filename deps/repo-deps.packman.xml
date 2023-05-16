@@ -8,6 +8,9 @@
   <dependency name="repo_kit_tools" linkPath="../_repo/deps/repo_kit_tools">
     <package name="repo_kit_tools" version="0.8.16"/>
   </dependency>
+  <dependency name="repo_licensing" linkPath="../_repo/deps/repo_licensing">
+    <package name="repo_licensing" version="1.9.10" />
+  </dependency>
   <dependency name="repo_man" linkPath="../_repo/deps/repo_man">
     <package name="repo_man" version="1.10.1"/>
   </dependency>

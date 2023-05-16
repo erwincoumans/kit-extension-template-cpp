@@ -1,3 +1,4 @@
+--[[ skip building, too much to fix right now
 -- Setup the extension.
 local ext = get_current_extension_info()
 project_ext(ext)
@@ -36,3 +37,4 @@ project_ext_plugin(ext, "omni.example.cpp.usd_physics.plugin")
     filter { "system:windows" }
         buildoptions { "/wd4244 /wd4305" }
     filter {}
+]]

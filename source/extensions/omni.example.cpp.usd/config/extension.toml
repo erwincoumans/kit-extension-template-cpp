@@ -2,7 +2,7 @@
 version = "1.0.0" # Semantic Versioning is used: https://semver.org/
 
 # These fields are used primarily for display in the extension browser UI.
-title = "Example C++ Extension: USD"
+title = "Example C++ Extension: USDRT"
 description = "Demonstrates how to create a C++ plugin that can interact with the current USD stage."
 category = "Example"
 keywords = ["example", "C++", "cpp", "USD"]
@@ -15,6 +15,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-extension-template-cpp"
 
 [dependencies]
 "omni.usd" = {}
+"usdrt.scenegraph" = {}
 
 # Define the Python modules that this extension provides.
 # C++ only extensions need this just so tests don't fail.

@@ -36,26 +36,9 @@ class ExampleUsdExtension(omni.ext.IExt):
             self._on_stage_event, name="omni.example.cpp.usd"
         )
 
-        # Print some info about the stage from C++.
-        _example_usd_interface.print_stage_info()
-
-        # Create some example prims from C++.
-        _example_usd_interface.create_prims()
-
-        # Print some info about the stage from C++.
-        _example_usd_interface.print_stage_info()
-
-        # Animate the example prims from C++.
-        _example_usd_interface.start_timeline_animation()
 
     def on_shutdown(self):
         global _example_usd_interface
-
-        # Stop animating the example prims from C++.
-        _example_usd_interface.stop_timeline_animation()
-
-        # Remove the example prims from C++.
-        _example_usd_interface.remove_prims()
 
         # Unsubscribe from omni.usd stage events.
         self._stage_event_sub = None
@@ -65,7 +48,9 @@ class ExampleUsdExtension(omni.ext.IExt):
         _example_usd_interface = None
 
     def _on_stage_event(self, event):
+        print("got stage event")
         if event.type == int(omni.usd.StageEventType.OPENED):
             _example_usd_interface.on_default_usd_stage_changed(omni.usd.get_context().get_stage_id())
+            print("registered with new stage id")
         elif event.type == int(omni.usd.StageEventType.CLOSED):
             _example_usd_interface.on_default_usd_stage_changed(0)
