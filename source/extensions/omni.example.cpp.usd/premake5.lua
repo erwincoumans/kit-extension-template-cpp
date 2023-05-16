@@ -22,9 +22,11 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         bin_dir.."/kit/extscore/usdrt.scenegraph/include",
         bin_dir.."/kit/dev/gsl/include",
         bin_dir.."/kit/dev/fabric/include",
+        "../../mujoco/include",
+        root.."/mujoco/include",
      }
-    libdirs { "%{target_deps}/nv_usd/release/lib" }
-    links { "arch", "gf", "sdf", "tf", "usd", "usdGeom", "usdUtils", "carb" }
+    libdirs { "%{target_deps}/nv_usd/release/lib", root.."/mujoco/lib" }
+    links { "arch", "gf", "sdf", "tf", "usd", "usdGeom", "usdUtils", "carb", "mujoco"}
     defines { "NOMINMAX", "NDEBUG" }
     runtime "Release"
     rtti "On"
@@ -34,7 +36,7 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         staticruntime "Off"
         cppdialect "C++17"
         includedirs { "%{target_deps}/python/include/python3.7m" }
-        buildoptions { "-D_GLIBCXX_USE_CXX11_ABI=0 -Wno-deprecated-declarations -Wno-deprecated -Wno-unused-variable -pthread -lstdc++fs -Wno-undef" }
+        buildoptions { "-D_GLIBCXX_USE_CXX11_ABI=0 -Wno-error -Wno-deprecated-declarations -Wno-deprecated -Wno-unused-variable -pthread -lstdc++fs -Wno-undef" }
         linkoptions { "-Wl,--disable-new-dtags -Wl,-rpath,%{target_deps}/nv_usd/release/lib:%{target_deps}/python/lib:" }
     filter { "system:windows" }
         buildoptions { "/wd4244 /wd4305 /wd4530" }
