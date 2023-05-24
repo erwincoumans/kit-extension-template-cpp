@@ -4,6 +4,7 @@
     <filter include="carb_sdk_plugins"/>
     <filter include="cuda"/>
     <filter include="doctest"/>
+    <filter include="omni_physics"/>
     <filter include="pybind11"/>
     <filter include="python"/>
   </import>
@@ -12,6 +13,7 @@
   <dependency name="carb_sdk_plugins" linkPath="../_build/target-deps/carb_sdk_plugins"/>
   <dependency name="cuda" linkPath="../_build/target-deps/cuda"/>
   <dependency name="doctest" linkPath="../_build/target-deps/doctest"/>
+  <dependency name="omni_physics" linkPath="../_build/target-deps/omni_physics"/>
   <dependency name="pybind11" linkPath="../_build/target-deps/pybind11"/>
   <dependency name="python" linkPath="../_build/target-deps/python"/>
 
