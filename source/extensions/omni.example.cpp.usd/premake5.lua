@@ -25,7 +25,7 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         "../../mujoco/include",
         root.."/mujoco/include",
      }
-    libdirs { "%{target_deps}/nv_usd/release/lib", root.."/mujoco/lib" }
+    libdirs { "%{target_deps}/nv_usd/release/lib", root.."/mujoco/lib/release" }
     links { "arch", "gf", "sdf", "tf", "usd", "usdGeom", "usdUtils", "carb", "mujoco"}
     defines { "NOMINMAX", "NDEBUG" }
     runtime "Release"

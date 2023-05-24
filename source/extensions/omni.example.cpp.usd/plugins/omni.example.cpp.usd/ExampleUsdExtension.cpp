@@ -57,25 +57,34 @@ protected:
         mjv_defaultScene(&m_scn);
 
         char error[MAX_MJ_ERROR_LENGTH] = "";
-        //m_m = mj_loadXML("F:/develop/milad/mujoco/model/box_scene.xml", NULL, error, MAX_MJ_ERROR_LENGTH);
-        m_m = mj_loadXML("/home/ecoumans/Downloads/box_scene.xml", NULL, error, MAX_MJ_ERROR_LENGTH);
-        
-        m_d = mj_makeData(m_m);
-        mj_forward(m_m, m_d);
-        mjv_makeScene(m_m, &m_scn, 1024);
+#if _WIN32
+        std::string file_name = "F:/develop/milad/mujoco/model/box_scene.xml";
+#else
+        std::string file_name = "/home/ecoumans/Downloads/box_scene.xml";
+#endif
+        m_m = mj_loadXML(file_name.c_str(), NULL, error, MAX_MJ_ERROR_LENGTH);
+        if (m_m)
+        {
+            m_d = mj_makeData(m_m);
+            mj_forward(m_m, m_d);
+            mjv_makeScene(m_m, &m_scn, 1024);
 
-        //mjr_makeContext(m_m, &m_con, 1);//50*(m_settings.font+1));
+            //mjr_makeContext(m_m, &m_con, 1);//50*(m_settings.font+1));
 
-        // clear perturbation state
-        m_pert.active = 0;
-        m_pert.select = 0;
-        m_pert.skinselect = -1;
+            // clear perturbation state
+            m_pert.active = 0;
+            m_pert.select = 0;
+            m_pert.skinselect = -1;
 
-        mjv_defaultOption( &m_vopt);
-        // align and scale view, update scene
-        //alignscale();
-        mjv_updateScene(m_m, m_d, &m_vopt, &m_pert, &m_cam, mjCAT_ALL, &m_scn);
-        mjv_addGeoms(m_m, m_d, &m_vopt, &m_pert, mjCAT_ALL, &m_scn);
+            mjv_defaultOption( &m_vopt);
+            // align and scale view, update scene
+            //alignscale();
+            mjv_updateScene(m_m, m_d, &m_vopt, &m_pert, &m_cam, mjCAT_ALL, &m_scn);
+            mjv_addGeoms(m_m, m_d, &m_vopt, &m_pert, mjCAT_ALL, &m_scn);
+        } else
+        {
+            std::cout << "Couldn't load " << file_name << std::endl;
+        }
 #if 0
          // clear geoms and add all categories
   scn->ngeom = 0;
