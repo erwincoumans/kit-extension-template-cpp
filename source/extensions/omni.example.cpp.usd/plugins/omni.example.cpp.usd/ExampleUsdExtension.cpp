@@ -28,12 +28,139 @@
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdUtils/stageCache.h>
+#include <omni/kit/KitUpdateOrder.h>
+#include <omni/kit/IStageUpdate.h>
 
 #include <vector>
+
+class OmniMuJoCoUpdateNode
+{
+    
+
+public:
+    
+    omni::kit::StageUpdateNode* m_stageUpdateNode = nullptr;
+
+    static void CARB_ABI onAttach(long int stageId, double metersPerUnit, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onAttach" << std::endl;
+    }
+
+    // detach the stage
+    static void CARB_ABI onDetach(void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onDetach" << std::endl;
+    }
+
+    // simulation was paused
+    static void CARB_ABI onPause(void* userData) 
+    {
+        std::cout << "OmniMuJoCoInterface::onPause" << std::endl;
+    }
+
+    // simulation was stopped(reset)
+    static void CARB_ABI onStop(void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onStop" << std::endl;
+    }
+
+    // simulation was resumed
+    static void CARB_ABI onResume(float currentTime, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onResume" << std::endl;
+    }
+
+    // this gets called in every update cycle of Kit (typically at each render frame)
+    static void CARB_ABI onUpdate(float currentTime, float elapsedSecs, const omni::kit::StageUpdateSettings* settings, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onUpdate" << std::endl;
+    }
+
+    /*
+        The following call backs are called when there is change in usd scene (e.g. user interaction, scripting, )
+        Each plugin should query the usd stage based on provided prim path name and sync changes related to their data
+    */
+    // this gets called when a new Usd prim was added to the scene
+    static void CARB_ABI onPrimAdd(const pxr::SdfPath& primPath, void* userData)
+    {
+         std::cout << "OmniMuJoCoInterface::onPrimAdd" << std::endl;
+    }
+
+    // this gets called when some properties in the usd prim was changed (e.g. manipulator or script changes transform)
+    static void CARB_ABI onPrimOrPropertyChange(const pxr::SdfPath& primOrPropertyPath, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onPrimOrPropertyChange" << std::endl;
+    }
+
+    // this gets called when the named usd prim was removed from the scene
+    static void CARB_ABI onPrimRemove(const pxr::SdfPath& primPath, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onPrimRemove" << std::endl;
+    }
+
+    /**
+     * Temporary raycast handler.  This will become part of a more general user event handler.
+     *
+     * @param orig the ray origin.  Set to NULL to send a stop command for grabbing.
+     * @param dir the ray direction (should be normalized).
+     * @param input whether the input control is set or reset (e.g. mouse down).
+     */
+    static void CARB_ABI onRaycast(const float* orig, const float* dir, bool input, void* userData)
+    {
+        std::cout << "OmniMuJoCoInterface::onRaycast" << std::endl;
+    }
+};
+
+OmniMuJoCoUpdateNode* gOmniMuJoCoUpdateNode = nullptr;
 
 const struct carb::PluginImplDesc pluginImplDesc = { "omni.example.cpp.usd.plugin",
                                                      "An example C++ extension.", "NVIDIA",
                                                      carb::PluginHotReload::eEnabled, "dev" };
+
+
+
+
+
+
+CARB_EXPORT void carbOnPluginStartup()
+{
+    std::cout << "carbOnPluginStartup" << std::endl;
+
+    carb::Framework* framework = carb::getFramework();
+    auto iStageUpdate = framework->tryAcquireInterface<omni::kit::IStageUpdate>();
+    {
+        omni::kit::StageUpdateNodeDesc desc = { 0 };
+        desc.displayName = "Custom Physics";
+        desc.order = omni::kit::update::eIUsdStageUpdatePhysics;
+        desc.userData = 
+
+        desc.onAttach = OmniMuJoCoUpdateNode::onAttach;
+        gOmniMuJoCoUpdateNode = new OmniMuJoCoUpdateNode();
+        desc.userData = gOmniMuJoCoUpdateNode;
+        desc.onDetach = OmniMuJoCoUpdateNode::onDetach;
+
+        desc.onUpdate = OmniMuJoCoUpdateNode::onUpdate;
+        desc.onResume = OmniMuJoCoUpdateNode::onResume;
+        desc.onPause = OmniMuJoCoUpdateNode::onPause;
+        desc.onStop = OmniMuJoCoUpdateNode::onStop;
+        desc.onRaycast = nullptr;
+
+        gOmniMuJoCoUpdateNode->m_stageUpdateNode = iStageUpdate->createStageUpdateNode(desc);
+    }    
+}
+
+CARB_EXPORT void carbOnPluginShutdown()
+{
+    carb::Framework* framework = carb::getFramework();
+    auto iStageUpdate = framework->tryAcquireInterface<omni::kit::IStageUpdate>();
+
+    if (gOmniMuJoCoUpdateNode != nullptr)
+    {
+        iStageUpdate->destroyStageUpdateNode(gOmniMuJoCoUpdateNode->m_stageUpdateNode);
+        delete gOmniMuJoCoUpdateNode;
+        gOmniMuJoCoUpdateNode = nullptr;
+    }
+}
 
 namespace omni
 {
