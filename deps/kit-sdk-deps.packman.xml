@@ -5,6 +5,7 @@
     <filter include="cuda"/>
     <filter include="doctest"/>
     <filter include="omni_physics"/>
+    <filter include="usdphysics"/>
     <filter include="pybind11"/>
     <filter include="python"/>
   </import>

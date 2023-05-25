@@ -19,6 +19,7 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         "%{target_deps}/nv_usd/release/include",
         "%{target_deps}/pybind11/include",
         "%{target_deps}/python/include",
+        "%{target_deps}/omni_physics/include",
         bin_dir.."/kit/extscore/usdrt.scenegraph/include",
         bin_dir.."/kit/dev/gsl/include",
         bin_dir.."/kit/dev/fabric/include",

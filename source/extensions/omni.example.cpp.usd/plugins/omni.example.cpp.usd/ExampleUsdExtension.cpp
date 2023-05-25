@@ -28,52 +28,194 @@
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdUtils/stageCache.h>
+#include <pxr/base/gf/transform.h>
+
+#include "pxr/usd/usd/collectionMembershipQuery.h"
+#include "pxr/usd/usdGeom/xformCache.h"
+
 #include <omni/kit/KitUpdateOrder.h>
 #include <omni/kit/IStageUpdate.h>
 
+#include <omni/physics/schema/IUsdPhysics.h>
 #include <vector>
 
-class OmniMuJoCoUpdateNode
+class OmniMuJoCoUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
 {
     
+    pxr::UsdStageRefPtr m_stage = nullptr;
+    bool m_stageInitialized = false;
+    bool m_paused = true;
+    omni::physics::schema::SceneDesc m_sceneDesc;
+    pxr::SdfPath m_scenePath;
+    std::vector<pxr::UsdPrim> m_bodyPrims;
 
 public:
     
     omni::kit::StageUpdateNode* m_stageUpdateNode = nullptr;
 
-    static void CARB_ABI onAttach(long int stageId, double metersPerUnit, void* userData)
+    //omni::physics::schema::IUsdPhysicsListener interface
+    void parsePrim(const pxr::UsdPrim& prim, omni::physics::schema::ObjectDesc* objectDesc, uint64_t, const pxr::TfTokenVector& appliedApis) override
+    {
+        std::cout << "parsePrim" << std::endl;
+    }
+
+    void reportObjectDesc(const pxr::SdfPath& path, const omni::physics::schema::ObjectDesc* objectDesc) override
+    {
+        std::cout << "reportObjectDesc" << std::endl;
+
+        switch (objectDesc->type)
+        {
+        case omni::physics::schema::ObjectType::eScene:
+        {
+            const pxr::UsdPrim scenePrim = m_stage->GetPrimAtPath(path);
+            if (scenePrim)
+            {
+                // We process only scenes without any API or with PhysxSceneAPI
+                const pxr::TfTokenVector& appliedApis = scenePrim.GetPrimTypeInfo().GetAppliedAPISchemas();
+                if (!appliedApis.empty())
+                {                    
+                    static const pxr::TfToken gCustomPhysicsSceneAPIToken("CustomPhysicsAPI");
+                    for (auto& api : appliedApis)
+                    {
+                        if (api == gCustomPhysicsSceneAPIToken)
+                        {
+                            m_sceneDesc = *(const omni::physics::schema::SceneDesc*)objectDesc;
+                            m_scenePath = path;
+                        }
+                    }
+                }
+            }
+        }
+        break;
+        case omni::physics::schema::ObjectType::eRigidBody:
+        {
+            const omni::physics::schema::RigidBodyDesc* inDesc = (const omni::physics::schema::RigidBodyDesc*)objectDesc;
+            for (auto& ownerPath : inDesc->simulationOwners)
+            {
+                if (ownerPath == m_scenePath)
+                {
+                    m_bodyPrims.push_back(m_stage->GetPrimAtPath(path));
+                    //todo: convert USD data to MuJoCo / URDF. Once all is done, 'compile' the model
+                    //todo2: refactor MuJoCo to not use a global 'Model' and 'Data' but more fine-grained data that can be incrementally updated.
+                }
+            }        
+        }
+        break;
+        default:
+            break;
+        }
+    }
+
+    //StageUpdateNodeDesc implementation
+    void CARB_ABI onAttach(long int stageId, double metersPerUnit)
     {
         std::cout << "OmniMuJoCoInterface::onAttach" << std::endl;
+        m_stage = pxr::UsdUtilsStageCache::Get().Find(pxr::UsdStageCache::Id::FromLongInt(stageId));
+    }
+    static void CARB_ABI onAttach(long int stageId, double metersPerUnit, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onAttach(stageId, metersPerUnit);
     }
 
     // detach the stage
-    static void CARB_ABI onDetach(void* userData)
+    void CARB_ABI onDetach()
     {
         std::cout << "OmniMuJoCoInterface::onDetach" << std::endl;
+        m_stage = nullptr;
     }
+    // detach the stage
+    static void CARB_ABI onDetach(void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onDetach();
+    }
+
+    // simulation was paused
+    void CARB_ABI onPause() 
+    {
+        std::cout << "OmniMuJoCoInterface::onPause" << std::endl;
+        m_paused = true;
+    }
+
 
     // simulation was paused
     static void CARB_ABI onPause(void* userData) 
     {
-        std::cout << "OmniMuJoCoInterface::onPause" << std::endl;
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onPause();
+    }
+
+    // simulation was stopped(reset)
+    void CARB_ABI onStop()
+    {
+        std::cout << "OmniMuJoCoInterface::onStop" << std::endl;
+        reset();
     }
 
     // simulation was stopped(reset)
     static void CARB_ABI onStop(void* userData)
     {
-        std::cout << "OmniMuJoCoInterface::onStop" << std::endl;
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onStop();
     }
 
     // simulation was resumed
-    static void CARB_ABI onResume(float currentTime, void* userData)
+    void CARB_ABI onResume(float currentTime)
     {
         std::cout << "OmniMuJoCoInterface::onResume" << std::endl;
+
+        if (!m_stageInitialized)
+        {
+            reset();
+            omni::physics::schema::IUsdPhysics* usdPhysics = carb::getFramework()->acquireInterface<omni::physics::schema::IUsdPhysics>();
+            if (usdPhysics)
+            {
+                pxr::UsdGeomXformCache xfCache;
+                usdPhysics->registerPhysicsListener(this);
+                pxr::UsdPrimRange range = m_stage->Traverse(pxr::UsdTraverseInstanceProxies());
+                omni::physics::schema::PrimIteratorRange primIteratorRange(range);
+                usdPhysics->loadFromRange(m_stage, xfCache, primIteratorRange);
+                usdPhysics->unregisterPhysicsListener(this);
+
+                if (m_scenePath != pxr::SdfPath())
+                {
+                    //"mSceneDesc.gravityDirection" 
+                    std::cout << "mSceneDesc.gravityMagnitude=" << m_sceneDesc.gravityMagnitude << std::endl;
+                }
+                m_stageInitialized = true;
+            } else
+            {
+                std::cout << "Error: couldn't find IUSdPhysics interface. Is omni.usdphysics enabled?" << std::endl;
+            }
+        }
+
+        m_paused = false;
+
+    }
+    // simulation was resumed
+    static void CARB_ABI onResume(float currentTime, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onResume(currentTime);
     }
 
     // this gets called in every update cycle of Kit (typically at each render frame)
-    static void CARB_ABI onUpdate(float currentTime, float elapsedSecs, const omni::kit::StageUpdateSettings* settings, void* userData)
+    void CARB_ABI onUpdate(float currentTime, float elapsedSecs, const omni::kit::StageUpdateSettings* settings)
     {
         std::cout << "OmniMuJoCoInterface::onUpdate" << std::endl;
+    }
+
+    static void CARB_ABI onUpdate(float currentTime, float elapsedSecs, const omni::kit::StageUpdateSettings* settings, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onUpdate(currentTime, elapsedSecs, settings);
     }
 
     /*
@@ -81,21 +223,43 @@ public:
         Each plugin should query the usd stage based on provided prim path name and sync changes related to their data
     */
     // this gets called when a new Usd prim was added to the scene
-    static void CARB_ABI onPrimAdd(const pxr::SdfPath& primPath, void* userData)
+    void CARB_ABI onPrimAdd(const pxr::SdfPath& primPath)
     {
          std::cout << "OmniMuJoCoInterface::onPrimAdd" << std::endl;
     }
+    
+    static void CARB_ABI onPrimAdd(const pxr::SdfPath& primPath, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onPrimAdd(primPath);
+
+    }
 
     // this gets called when some properties in the usd prim was changed (e.g. manipulator or script changes transform)
-    static void CARB_ABI onPrimOrPropertyChange(const pxr::SdfPath& primOrPropertyPath, void* userData)
+    void CARB_ABI onPrimOrPropertyChange(const pxr::SdfPath& primOrPropertyPath)
     {
         std::cout << "OmniMuJoCoInterface::onPrimOrPropertyChange" << std::endl;
     }
+    // this gets called when some properties in the usd prim was changed (e.g. manipulator or script changes transform)
+    static void CARB_ABI onPrimOrPropertyChange(const pxr::SdfPath& primOrPropertyPath, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onPrimOrPropertyChange(primOrPropertyPath);
+    }
 
+    // this gets called when the named usd prim was removed from the scene
+    void CARB_ABI onPrimRemove(const pxr::SdfPath& primPath)
+    {
+        std::cout << "OmniMuJoCoInterface::onPrimRemove" << std::endl;
+    }
     // this gets called when the named usd prim was removed from the scene
     static void CARB_ABI onPrimRemove(const pxr::SdfPath& primPath, void* userData)
     {
-        std::cout << "OmniMuJoCoInterface::onPrimRemove" << std::endl;
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onPrimRemove(primPath);
     }
 
     /**
@@ -105,9 +269,25 @@ public:
      * @param dir the ray direction (should be normalized).
      * @param input whether the input control is set or reset (e.g. mouse down).
      */
-    static void CARB_ABI onRaycast(const float* orig, const float* dir, bool input, void* userData)
+    void CARB_ABI onRaycast(const float* orig, const float* dir, bool input)
     {
         std::cout << "OmniMuJoCoInterface::onRaycast" << std::endl;
+    }
+    static void CARB_ABI onRaycast(const float* orig, const float* dir, bool input, void* userData)
+    {
+        assert(usedData);
+        OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
+        node->onRaycast(orig, dir, input);
+    }
+
+    //specific reset to this simulator
+    void reset()
+    {
+        m_paused = true;
+        m_stageInitialized = false;
+        
+        m_bodyPrims.clear();
+        m_scenePath = pxr::SdfPath();
     }
 };
 
@@ -138,7 +318,6 @@ CARB_EXPORT void carbOnPluginStartup()
         gOmniMuJoCoUpdateNode = new OmniMuJoCoUpdateNode();
         desc.userData = gOmniMuJoCoUpdateNode;
         desc.onDetach = OmniMuJoCoUpdateNode::onDetach;
-
         desc.onUpdate = OmniMuJoCoUpdateNode::onUpdate;
         desc.onResume = OmniMuJoCoUpdateNode::onResume;
         desc.onPause = OmniMuJoCoUpdateNode::onPause;
