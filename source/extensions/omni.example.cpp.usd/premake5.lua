@@ -23,10 +23,10 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         bin_dir.."/kit/extscore/usdrt.scenegraph/include",
         bin_dir.."/kit/dev/gsl/include",
         bin_dir.."/kit/dev/fabric/include",
-        "../../mujoco/include",
+        -- "/home/mrakhsha/Documents/Repos/mujoco/include",
         root.."/mujoco/include",
      }
-    libdirs { "%{target_deps}/nv_usd/release/lib", root.."/mujoco/lib/release" }
+    libdirs { "%{target_deps}/nv_usd/release/lib", root.."/mujoco-build/lib" }
     links { "arch", "gf", "sdf", "tf", "usd", "usdGeom", "usdUtils", "carb", "mujoco"}
     defines { "NOMINMAX", "NDEBUG" }
     runtime "Release"

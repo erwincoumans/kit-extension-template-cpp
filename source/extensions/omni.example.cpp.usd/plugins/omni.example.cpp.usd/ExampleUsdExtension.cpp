@@ -41,7 +41,7 @@
 
 class OmniMuJoCoUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
 {
-    
+
     pxr::UsdStageRefPtr m_stage = nullptr;
     bool m_stageInitialized = false;
     bool m_paused = true;
@@ -50,7 +50,7 @@ class OmniMuJoCoUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
     std::vector<pxr::UsdPrim> m_bodyPrims;
 
 public:
-    
+
     omni::kit::StageUpdateNode* m_stageUpdateNode = nullptr;
 
     //omni::physics::schema::IUsdPhysicsListener interface
@@ -73,7 +73,7 @@ public:
                 // We process only scenes without any API or with PhysxSceneAPI
                 const pxr::TfTokenVector& appliedApis = scenePrim.GetPrimTypeInfo().GetAppliedAPISchemas();
                 if (!appliedApis.empty())
-                {                    
+                {
                     static const pxr::TfToken gCustomPhysicsSceneAPIToken("CustomPhysicsAPI");
                     for (auto& api : appliedApis)
                     {
@@ -98,7 +98,7 @@ public:
                     //todo: convert USD data to MuJoCo / URDF. Once all is done, 'compile' the model
                     //todo2: refactor MuJoCo to not use a global 'Model' and 'Data' but more fine-grained data that can be incrementally updated.
                 }
-            }        
+            }
         }
         break;
         default:
@@ -134,7 +134,7 @@ public:
     }
 
     // simulation was paused
-    void CARB_ABI onPause() 
+    void CARB_ABI onPause()
     {
         std::cout << "OmniMuJoCoInterface::onPause" << std::endl;
         m_paused = true;
@@ -142,7 +142,7 @@ public:
 
 
     // simulation was paused
-    static void CARB_ABI onPause(void* userData) 
+    static void CARB_ABI onPause(void* userData)
     {
         assert(usedData);
         OmniMuJoCoUpdateNode* node = (OmniMuJoCoUpdateNode*) userData;
@@ -184,7 +184,7 @@ public:
 
                 if (m_scenePath != pxr::SdfPath())
                 {
-                    //"mSceneDesc.gravityDirection" 
+                    //"mSceneDesc.gravityDirection"
                     std::cout << "mSceneDesc.gravityMagnitude=" << m_sceneDesc.gravityMagnitude << std::endl;
                 }
                 m_stageInitialized = true;
@@ -227,7 +227,7 @@ public:
     {
          std::cout << "OmniMuJoCoInterface::onPrimAdd" << std::endl;
     }
-    
+
     static void CARB_ABI onPrimAdd(const pxr::SdfPath& primPath, void* userData)
     {
         assert(usedData);
@@ -285,7 +285,7 @@ public:
     {
         m_paused = true;
         m_stageInitialized = false;
-        
+
         m_bodyPrims.clear();
         m_scenePath = pxr::SdfPath();
     }
@@ -312,8 +312,6 @@ CARB_EXPORT void carbOnPluginStartup()
         omni::kit::StageUpdateNodeDesc desc = { 0 };
         desc.displayName = "Custom Physics";
         desc.order = omni::kit::update::eIUsdStageUpdatePhysics;
-        desc.userData = 
-
         desc.onAttach = OmniMuJoCoUpdateNode::onAttach;
         gOmniMuJoCoUpdateNode = new OmniMuJoCoUpdateNode();
         desc.userData = gOmniMuJoCoUpdateNode;
@@ -325,7 +323,7 @@ CARB_EXPORT void carbOnPluginStartup()
         desc.onRaycast = nullptr;
 
         gOmniMuJoCoUpdateNode->m_stageUpdateNode = iStageUpdate->createStageUpdateNode(desc);
-    }    
+    }
 }
 
 CARB_EXPORT void carbOnPluginShutdown()
@@ -355,7 +353,7 @@ class ExampleCppUsdExtension : public IExampleUsdInterface
 {
 
 
-    
+
 
 protected:
     void createPrims() override
@@ -409,7 +407,7 @@ protected:
 #endif
 
 
-        //if (m) 
+        //if (m)
         //if (d) {
         //  sim->Load(m, d, filename);
         //  mj_forward(m, d);
@@ -441,11 +439,11 @@ protected:
             //prim.CreateAttribute(PXR_NS::TfToken("size"), PXR_NS::SdfValueTypeNames->Double).Set(cubeSize);
 
             // Leave the first prim at the origin and position the rest in a circle surrounding it.
-            
+
             m_primsWithRotationOps.push_back({ prim });
             PXR_NS::UsdGeomXformable xformable = PXR_NS::UsdGeomXformable(m_primsWithRotationOps[i].m_prim);
             xformable.ClearXformOpOrder();
-            
+
             auto transform_op = xformable.AddTransformOp();
             m_xformOps.push_back(transform_op);
 
@@ -627,7 +625,7 @@ protected:
 
         //assert(false);
 
-        
+
 
         // Update the value of each local and global rotation operation to (crudely) animate the prims around the origin.
         const int numPrims = (int) m_primsWithRotationOps.size();
@@ -652,7 +650,7 @@ protected:
 
             int geom_index = (int)i+1;//skip ground plane for now
             auto pos = 100.*PXR_NS::GfVec3d(m_scn.geoms[geom_index].pos[0],m_scn.geoms[geom_index].pos[1],m_scn.geoms[geom_index].pos[2]);
-            
+
             double v[9] = {(double)m_scn.geoms[geom_index].mat[0],(double)m_scn.geoms[geom_index].mat[1],(double)m_scn.geoms[geom_index].mat[2],
                 (double)m_scn.geoms[geom_index].mat[3],(double)m_scn.geoms[geom_index].mat[4],(double)m_scn.geoms[geom_index].mat[5],
                 (double)m_scn.geoms[geom_index].mat[6],(double)m_scn.geoms[geom_index].mat[7],(double)m_scn.geoms[geom_index].mat[8]};
@@ -660,11 +658,11 @@ protected:
                 v[0],v[3],v[6],
                 v[1],v[4],v[7],
                 v[2],v[5],v[8]);
-                    
-            
+
+
             mat.SetTranslateOnly(pos);
             mat.SetRotateOnly(rot);
-            
+
             transform.Set(mat);
         }
     }
