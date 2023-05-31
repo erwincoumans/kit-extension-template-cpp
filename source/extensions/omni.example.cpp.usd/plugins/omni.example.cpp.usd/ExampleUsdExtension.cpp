@@ -39,6 +39,25 @@
 #include <omni/physics/schema/IUsdPhysics.h>
 #include <vector>
 
+
+#include "SharedMemory/b3RobotSimulatorClientAPI_NoDirect.h"
+#include "SharedMemory/PhysicsClientSharedMemory.h"
+#include "SharedMemory/b3RobotSimulatorClientAPI_InternalData.h"
+#include "CommonInterfaces/CommonGUIHelperInterface.h"
+
+
+class DrakeUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
+{
+
+};
+
+
+class PyBulletUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
+{
+
+};
+
+
 class OmniMuJoCoUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
 {
     
@@ -49,8 +68,47 @@ class OmniMuJoCoUpdateNode  : public omni::physics::schema::IUsdPhysicsListener
     pxr::SdfPath m_scenePath;
     std::vector<pxr::UsdPrim> m_bodyPrims;
 
-public:
     
+    b3RobotSimulatorClientAPI_NoDirect* m_physicsClient = nullptr;
+    
+    bool m_isConnected = false;
+public:
+
+    OmniMuJoCoUpdateNode()
+    {
+
+        b3PhysicsClientHandle clientHandle = b3ConnectSharedMemory(SHARED_MEMORY_KEY);
+        m_isConnected = b3CanSubmitCommand(clientHandle);
+        
+        if (m_isConnected)
+        {
+            
+            m_physicsClient = new b3RobotSimulatorClientAPI_NoDirect();
+            b3RobotSimulatorClientAPI_InternalData data;
+            data.m_physicsClientHandle = clientHandle;
+            
+            data.m_guiHelper = new DummyGUIHelper();
+            m_physicsClient->setInternalData(&data);
+            m_physicsClient->syncBodies();
+            int numBodies = m_physicsClient->getNumBodies();   
+            std::cout << "numBodies" << numBodies << std::endl;
+            m_physicsClient->resetSimulation();
+            m_physicsClient->loadURDF("plane.urdf");
+           
+        }
+    	//b3RobotSimulatorClientAPI_NoGUI* sim = new b3RobotSimulatorClientAPI_NoGUI();
+	    //bool isConnected = sim->connect(eCONNECT_SHARED_MEMORY);
+    }
+
+    virtual ~OmniMuJoCoUpdateNode()
+    {
+        if (m_isConnected)
+        {
+            delete m_physicsClient;
+            
+        }
+    }
+
     omni::kit::StageUpdateNode* m_stageUpdateNode = nullptr;
 
     //omni::physics::schema::IUsdPhysicsListener interface
@@ -391,31 +449,6 @@ protected:
         {
             std::cout << "Couldn't load " << file_name << std::endl;
         }
-#if 0
-         // clear geoms and add all categories
-  scn->ngeom = 0;
-  mjv_addGeoms(m, d, opt, pert, catmask, scn);
-
-  // add lights
-  mjv_makeLights(m, d, scn);
-
-  // update camera
-  mjv_updateCamera(m, d, cam, scn);
-
-  // update skins
-  if (opt->flags[mjVIS_SKIN]) {
-    mjv_updateSkin(m, d, scn);
-  }
-#endif
-
-
-        //if (m) 
-        //if (d) {
-        //  sim->Load(m, d, filename);
-        //  mj_forward(m, d);
-
-
-
         // It is important that all USD stage reads/writes happen from the main thread:
         // https ://graphics.pixar.com/usd/release/api/_usd__page__multi_threading.html
         if (!m_stage)
