@@ -8,7 +8,13 @@
     <filter include="usdphysics"/>
     <filter include="pybind11"/>
     <filter include="python"/>
+    <filter include="usd_ext_physics_${config}" />
   </import>
+
+  <!-- Import Physics plugins deps -->
+  <!-- <import path="../_build/target-deps/omni_physics/deps/target-deps.packman.xml">
+    <filter include="usd_ext_physics_${config}" />
+  </import> -->
 
   <!-- Override the link paths to point to the correct locations. -->
   <dependency name="carb_sdk_plugins" linkPath="../_build/target-deps/carb_sdk_plugins"/>

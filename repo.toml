@@ -36,6 +36,7 @@ extensions = [
     "omni.example.cpp.usd_physics",
     "omni.example.python.hello_world",
     "omni.example.python.ui",
+    "omni.example.custom.physics",
 ]
 
 [repo_package.packages."platform:windows-x86_64".docs]

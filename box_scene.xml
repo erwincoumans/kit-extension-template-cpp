@@ -1,0 +1,69 @@
+<mujoco>
+    <worldbody>
+        <geom name="Cube" pos="0 0 0" quat="1 0 0 0" type="box" size="50 50 0.005"/>
+        <body pos="-1.90787 0 2.2" quat="1 0 0 0">
+            <geom name="boxActor" pos="0 0 0" quat="1 0 0 0" type="box" size="0.125 0.125 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.90787 0.608016 2.17518" quat="0.91819 0.39614 0 0">
+            <geom name="boxActor_01" pos="0 0 0" quat="1 0 0 0" type="box" size="0.375 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.05031 0.765542 1.96819" quat="0.970565 0.240841 0 0">
+            <geom name="boxActor_02" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.1875 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.05031 0.0424854 2.45662" quat="0.986571 -0.163331 0 0">
+            <geom name="boxActor_03" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.90787 2.01517 2.17518" quat="0.91819 0.39614 0 0">
+            <geom name="boxActor_04" pos="0 0 0" quat="1 0 0 0" type="box" size="0.375 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.05031 1.44964 2.45662" quat="0.986571 -0.163331 0 0">
+            <geom name="boxActor_05" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.05031 2.1727 1.96819" quat="0.970565 0.240841 0 0">
+            <geom name="boxActor_06" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.1875 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-1.90787 1.40715 2.2" quat="1 0 0 0">
+            <geom name="boxActor_07" pos="0 0 0" quat="1 0 0 0" type="box" size="0.125 0.125 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-0.116574 0.608016 2.17518" quat="0.91819 0.39614 0 0">
+            <geom name="boxActor_08" pos="0 0 0" quat="1 0 0 0" type="box" size="0.375 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="0.740994 0.0424854 2.45662" quat="0.986571 -0.163331 0 0">
+            <geom name="boxActor_09" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="0.740994 0.765542 1.96819" quat="0.970565 0.240841 0 0">
+            <geom name="boxActor_10" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.1875 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-0.116574 0 2.2" quat="1 0 0 0">
+            <geom name="boxActor_11" pos="0 0 0" quat="1 0 0 0" type="box" size="0.125 0.125 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-0.116574 2.01517 2.17518" quat="0.91819 0.39614 0 0">
+            <geom name="boxActor_12" pos="0 0 0" quat="1 0 0 0" type="box" size="0.375 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="0.740994 1.44964 2.45662" quat="0.986571 -0.163331 0 0">
+            <geom name="boxActor_13" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.25 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="0.740994 2.1727 1.96819" quat="0.970565 0.240841 0 0">
+            <geom name="boxActor_14" pos="0 0 0" quat="1 0 0 0" type="box" size="0.25 0.1875 0.125"/>
+            <freejoint/>
+        </body>
+        <body pos="-0.116574 1.40715 2.2" quat="1 0 0 0">
+            <geom name="boxActor_15" pos="0 0 0" quat="1 0 0 0" type="box" size="0.125 0.125 0.125"/>
+            <freejoint/>
+        </body>
+    </worldbody>
+</mujoco>

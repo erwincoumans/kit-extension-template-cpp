@@ -10,4 +10,9 @@
   <dependency name="winsdk" linkPath="../_build/host-deps/winsdk">
     <package name="winsdk" version="10.0.18362.0-license" platforms="windows-x86_64"/>
   </dependency>
+
+    <dependency name="tinyxml2" linkPath="../_build/target-deps/tinyxml2">
+        <package name="tinyxml2" version="linux_x64_20200823_2c5a6bf" platforms="linux-x86_64" />
+        <package name="tinyxml2" version="win_x64_20200824_2c5a6bf" platforms="windows-x86_64" />
+    </dependency>
 </project>

@@ -9,12 +9,12 @@ repo_build.prebuild_link {
 }
 
 -- Build the C++ plugin that will be loaded by the extension.
-project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
-    add_files("include", "include/omni/example/cpp/usd")
-    add_files("source", "plugins/omni.example.cpp.usd")
+project_ext_plugin(ext, "omni.example.custom.physics.plugin")
+    add_files("include", "include/omni/example/custom/physics")
+    add_files("source", "plugins/omni.example.custom.physics")
     includedirs {
         "include",
-        "plugins/omni.example.cpp.usd",
+        "plugins/omni.example.custom.physics",
         "%{target_deps}/cuda",
         "%{target_deps}/nv_usd/release/include",
         "%{target_deps}/usd_ext_physics/%{cfg.buildcfg}/include",
@@ -53,13 +53,13 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
 -- Build Python bindings that will be loaded by the extension.
 project_ext_bindings {
     ext = ext,
-    project_name = "omni.example.cpp.usd.python",
-    module = "_example_usd_bindings",
-    src = "bindings/python/omni.example.cpp.usd",
-    target_subdir = "omni/example/cpp/usd"
+    project_name = "omni.example.custom.physics.python",
+    module = "_custom_physics_bindings",
+    src = "bindings/python/omni.example.custom.physics",
+    target_subdir = "omni/example/custom/physics"
 }
     includedirs { "include" }
     repo_build.prebuild_link {
-        { "python/impl", ext.target_dir.."/omni/example/cpp/usd/impl" },
-        { "python/tests", ext.target_dir.."/omni/example/cpp/usd/tests" },
+        { "python/impl", ext.target_dir.."/omni/example/custom/physics/impl" },
+        { "python/tests", ext.target_dir.."/omni/example/custom/physics/tests" },
     }

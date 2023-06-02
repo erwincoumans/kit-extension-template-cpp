@@ -5,8 +5,8 @@
     <filter include="imgui"/>
     <filter include="nv_usd_py37_debug"/>
     <filter include="nv_usd_py37_release"/>
-    <filter include="usd_ext_physics_debug"/>
-    <filter include="usd_ext_physics_release"/>
+    <!-- <filter include="usd_ext_physics_debug"/>
+    <filter include="usd_ext_physics_release"/> -->
   </import>
 
   <!-- Override the link paths to point to the correct locations. -->
@@ -14,7 +14,22 @@
   <dependency name="imgui" linkPath="../_build/target-deps/imgui"/>
   <dependency name="nv_usd_py37_debug" linkPath="../_build/target-deps/nv_usd/debug"/>
   <dependency name="nv_usd_py37_release" linkPath="../_build/target-deps/nv_usd/release"/>
-  <dependency name="usd_ext_physics_debug" linkPath="../_build/target-deps/usd_ext_physics/debug"/>
-  <dependency name="usd_ext_physics_release" linkPath="../_build/target-deps/usd_ext_physics/release"/>
+  <!-- <dependency name="usd_ext_physics_debug" linkPath="../_build/target-deps/usd_ext_physics/debug"/>
+  <dependency name="usd_ext_physics_release" linkPath="../_build/target-deps/usd_ext_physics/release"/> -->
+
+
+  <import path="../_build/${platform}/${config}/kit/dev/deps/target-deps.packman.xml">
+    <filter include="omni_physics" />
+  </import>
+    <dependency name="omni_physics" linkPath="../_build/target-deps/omni_physics">
+  </dependency>
+
+
+  <!-- Import Physics plugins deps -->
+  <import path="../_build/target-deps/omni_physics/deps/target-deps.packman.xml">
+    <filter include="usd_ext_physics_${config}" />
+  </import>
+
+  <dependency name="usd_ext_physics_${config}" linkPath="../_build/target-deps/usd_ext_physics/${config}" />
 
 </project>

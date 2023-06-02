@@ -1,0 +1,306 @@
+<robot name="">
+    <link name="boxActor">
+        <inertial>
+            <origin xyz="-1.90787 0 2.2" quat_xyzw="1 0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_01">
+        <inertial>
+            <origin xyz="-1.90787 0.608016 2.17518" quat_xyzw="0.91819 0.39614 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_02">
+        <inertial>
+            <origin xyz="-1.05031 0.765542 1.96819" quat_xyzw="0.970565 0.240841 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_03">
+        <inertial>
+            <origin xyz="-1.05031 0.0424854 2.45662" quat_xyzw="0.986571 -0.163331 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_04">
+        <inertial>
+            <origin xyz="-1.90787 2.01517 2.17518" quat_xyzw="0.91819 0.39614 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_05">
+        <inertial>
+            <origin xyz="-1.05031 1.44964 2.45662" quat_xyzw="0.986571 -0.163331 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_06">
+        <inertial>
+            <origin xyz="-1.05031 2.1727 1.96819" quat_xyzw="0.970565 0.240841 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_07">
+        <inertial>
+            <origin xyz="-1.90787 1.40715 2.2" quat_xyzw="1 0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_08">
+        <inertial>
+            <origin xyz="-0.116574 0.608016 2.17518" quat_xyzw="0.91819 0.39614 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_09">
+        <inertial>
+            <origin xyz="0.740994 0.0424854 2.45662" quat_xyzw="0.986571 -0.163331 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_10">
+        <inertial>
+            <origin xyz="0.740994 0.765542 1.96819" quat_xyzw="0.970565 0.240841 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_11">
+        <inertial>
+            <origin xyz="-0.116574 0 2.2" quat_xyzw="1 0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_12">
+        <inertial>
+            <origin xyz="-0.116574 2.01517 2.17518" quat_xyzw="0.91819 0.39614 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.75 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_13">
+        <inertial>
+            <origin xyz="0.740994 1.44964 2.45662" quat_xyzw="0.986571 -0.163331 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.5 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_14">
+        <inertial>
+            <origin xyz="0.740994 2.1727 1.96819" quat_xyzw="0.970565 0.240841 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.5 0.375 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+    <link name="boxActor_15">
+        <inertial>
+            <origin xyz="-0.116574 1.40715 2.2" quat_xyzw="1 0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" iyy="0" izz="0" ixy="0" ixz="0" iyz="0"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" quat_xyzw="1 0 0 0"/>
+            <geometry>
+                <box size="0.25 0.25 0.25"/>
+            </geometry>
+        </collision>
+    </link>
+</robot>
