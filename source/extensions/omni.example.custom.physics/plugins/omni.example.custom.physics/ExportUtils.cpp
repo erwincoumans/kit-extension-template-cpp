@@ -282,13 +282,13 @@ void ExportUtils::ExportToMjcf(const std::string fullPath) {
 
     tinyxml2::XMLElement *wBody = xmlDoc.NewElement("worldbody");
 
-    for (size_t i = 0; i < usdData.shapePrims.size(); i++) {
-        std::cout << " eval shape " << usdData.shapePrims[i].GetPath() << std::endl;
-        if (usdData.rigidBodyMap.find(usdData.shapePrims[i].GetPath()) == usdData.rigidBodyMap.end()){
-            std::cout << " processing shape " << usdData.shapePrims[i].GetPath() << std::endl;
-            addMjcfShapes(xmlDoc, wBody, usdData.shapePrims[i].GetPath());
-        }
-    }
+    //for (size_t i = 0; i < usdData.shapePrims.size(); i++) {
+    //    std::cout << " eval shape " << usdData.shapePrims[i].GetPath() << std::endl;
+    //    if (usdData.rigidBodyMap.find(usdData.shapePrims[i].GetPath()) == usdData.rigidBodyMap.end()){
+    //        std::cout << " processing shape " << usdData.shapePrims[i].GetPath() << std::endl;
+    //        addMjcfShapes(xmlDoc, wBody, usdData.shapePrims[i].GetPath());
+    //    }
+    //}
 
     for (size_t i = 0; i < usdData.bodyPrims.size(); i++) {
         addMjcfLink(xmlDoc, wBody, usdData.bodyPrims[i].GetPath());

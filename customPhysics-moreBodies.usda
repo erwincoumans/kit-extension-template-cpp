@@ -7,8 +7,8 @@
                 double radius = 500
             }
             dictionary Perspective = {
-                double3 position = (590.0714721876355, 697.8401456656322, 699.0421475192411)
-                double3 target = (42.41479784982482, 215.01827592263476, 217.01964941181478)
+                double3 position = (921.8614224920807, 945.5482595991438, 746.6747354812367)
+                double3 target = (284.52828022364054, 339.35146366841775, 319.8592031658827)
             }
             dictionary Right = {
                 double3 position = (0, -50000, 0)
@@ -21,7 +21,7 @@
             string boundCamera = "/OmniverseKit_Persp"
         }
         dictionary omni_layer = {
-            string authoring_layer = "./customPhysics.usda"
+            string authoring_layer = "./customPhysics-moreBodies.usda"
             dictionary muteness = {
             }
         }
@@ -166,6 +166,54 @@ def Xform "World"
         quatf xformOp:orient = (1, 0, 0, 0)
         float3 xformOp:scale = (100, 100, 0.1)
         double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "boxActor_02" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsRigidBodyAPI", "PhysicsMassAPI"]
+    )
+    {
+        float3[] extent = [(-12.5, -12.5, -12.5), (12.5, 12.5, 12.5)]
+        vector3f physics:angularVelocity = (270, 0, 0)
+        rel physics:simulationOwner = </World/physicsScene_01>
+        vector3f physics:velocity = (2, 1, 2)
+        color3f[] primvars:displayColor = [(0.11764706, 0.23529412, 1)]
+        double size = 25
+        quatf xformOp:orient = (0.9216706, 0.10220801, -0.36004218, 0.10220801)
+        float3 xformOp:scale = (2, 2, 1)
+        double3 xformOp:translate = (196.35548305877268, 233.76890642719246, 219.99999999999991)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "boxActor_03" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsRigidBodyAPI", "PhysicsMassAPI"]
+    )
+    {
+        float3[] extent = [(-12.5, -12.5, -12.5), (12.5, 12.5, 12.5)]
+        vector3f physics:angularVelocity = (270, 0, 0)
+        rel physics:simulationOwner = </World/physicsScene_01>
+        vector3f physics:velocity = (2, 1, 2)
+        color3f[] primvars:displayColor = [(0.11764706, 0.23529412, 1)]
+        double size = 25
+        quatf xformOp:orient = (0.95125127, 0.16773126, -0.254887, -0.044943456)
+        float3 xformOp:scale = (3, 3, 0.5)
+        double3 xformOp:translate = (35.803859800232885, 344.56084001835666, 219.99999999999977)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Cube "boxActor_04" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsRigidBodyAPI", "PhysicsMassAPI"]
+    )
+    {
+        float3[] extent = [(-12.5, -12.5, -12.5), (12.5, 12.5, 12.5)]
+        vector3f physics:angularVelocity = (270, 0, 0)
+        rel physics:simulationOwner = </World/physicsScene_01>
+        vector3f physics:velocity = (2, 1, 2)
+        color3f[] primvars:displayColor = [(0.11764706, 0.23529412, 1)]
+        double size = 25
+        quatf xformOp:orient = (0.90104425, -0.21918578, -0.3033718, 0.21918578)
+        float3 xformOp:scale = (4, 1, 1)
+        double3 xformOp:translate = (196.35548305877404, 344.56084001835075, 219.9999999999992)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
     }
 }

@@ -47,6 +47,7 @@
 
 using RigidBodyMap = std::map<pxr::SdfPath, const omni::physics::schema::RigidBodyDesc *>;
 using ShapeMap = std::map<pxr::SdfPath, const omni::physics::schema::ShapeDesc *>;
+using ShapeScale = std::map<pxr::SdfPath, pxr::GfVec3f>;
 
 namespace omni {
 namespace example {
@@ -61,6 +62,7 @@ class UsdData {
     std::vector<pxr::UsdPrim> shapePrims;
     RigidBodyMap rigidBodyMap;
     ShapeMap shapeMap;
+    ShapeScale shapeScales;
 };
 
 class ExportUtils {

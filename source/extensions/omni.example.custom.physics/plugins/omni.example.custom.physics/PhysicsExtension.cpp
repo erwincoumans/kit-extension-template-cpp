@@ -43,7 +43,6 @@
 
 #include <vector>
 
-
 using namespace PXR_NS;
 class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
                              public TfWeakBase,
@@ -103,7 +102,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             const omni::physics::schema::RigidBodyDesc *inDesc =
                 (const omni::physics::schema::RigidBodyDesc *)objectDesc;
             for (auto &ownerPath : inDesc->simulationOwners) {
-                if (ownerPath == m_usdData.scenePath || true) {
+                if (ownerPath == m_usdData.scenePath) {
                     m_usdData.rigidBodyMap[path] = inDesc;
                     m_usdData.bodyPrims.push_back(m_stage->GetPrimAtPath(path));
                     // todo: convert USD data to MuJoCo / URDF. Once all is done, 'compile' the model
@@ -128,7 +127,10 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             std::cout << "reportObjectDesc shape " << prim.GetName().GetText() << std::endl;
             pxr::GfVec3f scale;
             prim.GetAttribute(TfToken("xformOp:scale")).Get(&scale);
+            // std::cout << "scale when parsing " << scale << std::endl;
             m_scales.push_back(scale);
+            m_usdData.shapeScales[path] = scale;
+
         } break;
         }
     }
@@ -190,7 +192,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
 #else
         file_name = "/home/ecoumans/Downloads/box_scene";
 #endif
-        std::cout << "exporting to urdf" << std::endl;
+        // std::cout << "exporting to urdf" << std::endl;
         omni::example::custom::physics::ExportUtils exporter(m_stage, m_usdData);
         exporter.ExportToUrdf(file_name + ".urdf");
         exporter.ExportToMjcf(file_name + ".xml");
@@ -223,16 +225,19 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
         printf("m_scn->ngeom (%d), numPrims (%d)\n", (int)m_scn.ngeom, (int)numPrims);
         for (int i = 0; i < numPrims; ++i) {
             UsdGeomXformable xformable = UsdGeomXformable(m_usdData.bodyPrims[i]);
-            xformable.ClearXformOpOrder();
+            // if (m_usdData.shapeMap.find(m_usdData.bodyPrims[i].GetPath()) != m_usdData.shapeMap.end()) {
+            //     std::cout << "local scale " << scale << std::endl;
+            //     m_usdData.bodyPrims[i].GetAttribute(TfToken("xformOp:scale")).Get(&scale);
+            //     std::cout << "opScale " << scale << std::endl;
+            //     m_usdData.shapeScales[m_usdData.bodyPrims[i].GetPath()] = scale;
+            // }
 
-            auto transform_op = xformable.AddTransformOp(pxr::UsdGeomXformOp::PrecisionDouble);
+            xformable.ClearXformOpOrder();
+            const auto &transform_op = xformable.AddTransformOp(pxr::UsdGeomXformOp::PrecisionDouble);
             m_xformOps.push_back(transform_op);
 
-            if (m_usdData.shapeMap.find(m_usdData.bodyPrims[i].GetPath()) != m_usdData.shapeMap.end()) {
-                auto scale = m_usdData.shapeMap[m_usdData.bodyPrims[i].GetPath()]->localScale;
-                std::cout << "prim scale " << scale << std::endl;
-                // xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionDouble).Set(scale);
-            }
+            const auto &scale_op = xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionFloat);
+            m_scaleOps.push_back(scale_op);
         }
     }
     // simulation was resumed
@@ -300,8 +305,6 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             xformable.ClearXformOpOrder();
 
             auto &transform = m_xformOps[i]; // xformable.AddTransformOp();
-
-            GfVec3d scale(1.0);
             auto mat = GfMatrix4d();
             mat.SetIdentity();
             int geom_index = i; // skip ground plane for now
@@ -319,15 +322,14 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             mat.SetTranslateOnly(pos);
             mat.SetRotateOnly(rot);
             // transform.Set(mat);
-            // std::cout << " prim " << i << " transfrom" << mat << "scale " << scale << std::endl;
+            //  std::cout << " prim " << i << " transfrom" << mat << "scale " << scale << std::endl;
             pxr::UsdTimeCode time = pxr::UsdTimeCode::Default();
             xformable.AddTransformOp(pxr::UsdGeomXformOp::PrecisionDouble).Set(mat);
-
-            // if (m_usdData.shapeMap.find(prim.GetPath()) != m_usdData.shapeMap.end()) {
-            //     scale = m_usdData.shapeMap[prim.GetPath()]->localScale;
-            //     xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionDouble).Set(scale);
-            // }
-
+            if (m_usdData.shapeMap.find(prim.GetPath()) != m_usdData.shapeMap.end()) {
+                auto scale = m_usdData.shapeScales[prim.GetPath()];
+                // m_scaleOps[i].Set(scale);
+                xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionFloat).Set((pxr::GfVec3f)scale);
+            }
         }
     }
 
@@ -408,8 +410,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
 
         if (stageId) {
             m_stage = UsdUtilsStageCache::Get().Find(UsdStageCache::Id::FromLongInt(stageId));
-            m_usdNoticeListenerKey =
-                TfNotice::Register(TfCreateWeakPtr(this), &OmniMuJoCoUpdateNode::onObjectsChanged);
+            m_usdNoticeListenerKey = TfNotice::Register(TfCreateWeakPtr(this), &OmniMuJoCoUpdateNode::onObjectsChanged);
         }
     }
 
@@ -432,7 +433,6 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
         }
     }
 };
-
 
 OmniMuJoCoUpdateNode *gOmniMuJoCoUpdateNode = nullptr;
 
