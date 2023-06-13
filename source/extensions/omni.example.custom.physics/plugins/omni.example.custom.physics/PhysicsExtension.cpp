@@ -93,6 +93,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
                         if (api == gCustomPhysicsSceneAPIToken) {
                             m_usdData.sceneDesc = *(const omni::physics::schema::SceneDesc *)objectDesc;
                             m_usdData.scenePath = path;
+                            std::cout << path.GetText() << " is a scene" << std::endl;
                         }
                     }
                 }
@@ -105,11 +106,48 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
                 if (ownerPath == m_usdData.scenePath) {
                     m_usdData.rigidBodyMap[path] = inDesc;
                     m_usdData.bodyPrims.push_back(m_stage->GetPrimAtPath(path));
+                    std::cout << path.GetText() << " is a rigid body" << std::endl;
+
                     // todo: convert USD data to MuJoCo / URDF. Once all is done, 'compile' the model
                     // todo2: refactor MuJoCo to not use a global 'Model' and 'Data' but more fine-grained data that can
                     // be incrementally updated.
                 }
             }
+        } break;
+
+        case omni::physics::schema::ObjectType::eArticulation: {
+            const omni::physics::schema::ArticulationDesc *inDesc =
+                (const omni::physics::schema::ArticulationDesc *)objectDesc;
+            std::cout << path.GetText() << " is an articulation" << std::endl;
+            m_usdData.articulationMap[path] = inDesc;
+
+        } break;
+
+        case omni::physics::schema::ObjectType::eJointSpherical:
+        case omni::physics::schema::ObjectType::eJointD6:
+        case omni::physics::schema::ObjectType::eJointDistance:
+        case omni::physics::schema::ObjectType::eJointFixed:
+        case omni::physics::schema::ObjectType::eJointPrismatic:
+        case omni::physics::schema::ObjectType::eJointRevolute:
+        case omni::physics::schema::ObjectType::eJointCustom: {
+            const omni::physics::schema::JointDesc *inDesc = (const omni::physics::schema::JointDesc *)objectDesc;
+            std::cout << path.GetText() << " is a joint" << std::endl;
+            m_usdData.jointMap[path] = inDesc;
+            if (inDesc->jointEnabled) {
+                // only a fixed joint can have a dangling body0/body1, we can ignore in mjcf
+                if (inDesc->body0 != SdfPath() && inDesc->body1 != SdfPath()) {
+                    m_usdData.bodyGraph[inDesc->body0].push_back(std::make_pair(inDesc->body1, path));
+                    m_usdData.visited[inDesc->body0] = false;
+                    m_usdData.bodyGraph[inDesc->body1].push_back(std::make_pair(inDesc->body0, path));
+                    m_usdData.visited[inDesc->body1] = false;
+                    std::string body0 = m_stage->GetPrimAtPath(inDesc->body0).GetName().GetText();
+                    std::string body1 = m_stage->GetPrimAtPath(inDesc->body1).GetName().GetText();
+					std::cout << "\t body0 : " << body0 << ", body1 : " << body1 << std::endl;
+                }
+            }
+
+            // TODO: check for correctness of the bodies, whether joint is enabled, etc.
+            // Later check for repeated bodies and loops
         } break;
 
         case omni::physics::schema::ObjectType::eSphereShape:
@@ -150,6 +188,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
     void CARB_ABI onDetach() {
         std::cout << "OmniMuJoCoInterface::onDetach" << std::endl;
         m_stage = nullptr;
+        reset();
     }
     // detach the stage
     static void CARB_ABI onDetach(void *userData) {
@@ -163,6 +202,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
     void CARB_ABI onPause() {
         std::cout << "OmniMuJoCoInterface::onPause" << std::endl;
         m_paused = true;
+        reset();
     }
 
     // simulation was paused
@@ -188,9 +228,9 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
     void CARB_ABI convertAndInitializeMujoco() {
 
 #if _WIN32
-        file_name = "C:\\Projects\\Repos\\kit-ext\\box_scene";
+        file_name = "C:\\Projects\\Repos\\kit-ext\\mujoco_scene";
 #else
-        file_name = "/home/ecoumans/Downloads/box_scene";
+        file_name = "/home/ecoumans/Downloads/mujoco_scene";
 #endif
         // std::cout << "exporting to urdf" << std::endl;
         omni::example::custom::physics::ExportUtils exporter(m_stage, m_usdData);
@@ -397,8 +437,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
     void reset() {
         m_paused = true;
         m_stageInitialized = false;
-
-        m_usdData.bodyPrims.clear();
+        m_usdData.reset();
         m_usdData.scenePath = pxr::SdfPath();
     }
 

@@ -169,4 +169,3 @@ def Xform "World"
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
     }
 }
-

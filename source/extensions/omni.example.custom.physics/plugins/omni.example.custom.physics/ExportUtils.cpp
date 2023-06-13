@@ -10,6 +10,7 @@
 #pragma once
 
 #include "ExportUtils.h"
+#include <stack>
 
 #pragma warning(disable : 4996)
 
@@ -198,7 +199,7 @@ void ExportUtils::shapeDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XM
 
     tinyxml2::XMLElement *mGeom = xmlDoc.NewElement("geom");
     pxr::UsdPrim child = stage->GetPrimAtPath(childPath);
-    std::cout << "writng geom " << childPath << std::endl;
+    std::cout << "\t shape : " << childPath << std::endl;
     mGeom->SetAttribute("name", child.GetName().GetText());
     mGeom->SetAttribute("pos", Vec3ToStr(shapeDesc->localPos * metersPerUnit).c_str());
     mGeom->SetAttribute("quat", QuatToStr(shapeDesc->localRot).c_str());
@@ -213,8 +214,8 @@ void ExportUtils::shapeDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XM
     case omni::physics::schema::ObjectType::eCubeShape: {
         auto desc = static_cast<const omni::physics::schema::CubeShapeDesc *>(shapeDesc);
         mGeom->SetAttribute("type", "box");
-        mGeom->SetAttribute(
-            "size", Vec3ToStr(GfCompMult(desc->halfExtents, shapeDesc->localScale) * metersPerUnit).c_str());
+        mGeom->SetAttribute("size",
+                            Vec3ToStr(GfCompMult(desc->halfExtents, shapeDesc->localScale) * metersPerUnit).c_str());
         xmlElement->InsertEndChild(mGeom);
         break;
     }
@@ -222,7 +223,7 @@ void ExportUtils::shapeDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XM
         auto desc = static_cast<const omni::physics::schema::CylinderShapeDesc *>(shapeDesc);
         mGeom->SetAttribute("type", "cylinder");
         std::stringstream ss;
-        ss << 2 * desc->halfHeight * metersPerUnit << " " << desc->radius * metersPerUnit; //TODO: use the localScale
+        ss << 2 * desc->halfHeight * metersPerUnit << " " << desc->radius * metersPerUnit; // TODO: use the localScale
         mGeom->SetAttribute("size", desc->halfHeight * metersPerUnit);
         xmlElement->InsertEndChild(mGeom);
         break;
@@ -240,31 +241,86 @@ void ExportUtils::shapeDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XM
     case omni::physics::schema::ObjectType::eMeshShape:
 
     case omni::physics::schema::ObjectType::eCustomShape:
-        CARB_LOG_WARN("unsupported shape encountered in UrdfExporter::shapeDescToXml ");
+        CARB_LOG_WARN("unsupported shape encountered in ExportUtils::shapeDescToMjcfXml");
         break;
     }
 }
 
-void ExportUtils::addMjcfLink(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *parent,
-                              const pxr::SdfPath &childPath) {
-    auto desc = usdData.rigidBodyMap[childPath];
-    tinyxml2::XMLElement *mlink = xmlDoc.NewElement("body");
-    mlink->SetAttribute("pos", Vec3ToStr(desc->position * metersPerUnit).c_str());
-    mlink->SetAttribute("quat", QuatToStr(desc->rotation).c_str());
-    auto shapeDesc = usdData.shapeMap[childPath];
-    shapeDescToMjcfXml(xmlDoc, mlink, childPath, shapeDesc);
-    if (desc->rigidBodyEnabled && !desc->kinematicBody) {
-        tinyxml2::XMLElement *mJoint = xmlDoc.NewElement("freejoint");
-        mlink->InsertEndChild(mJoint);
-    }
-    parent->InsertEndChild(mlink);
+void ExportUtils::JointDescToMjcfXml(tinyxml2::XMLDocument& xmlDoc, tinyxml2::XMLElement* xmlElement,
+	const pxr::SdfPath& primPath, const pxr::SdfPath& parentPath, const omni::physics::schema::JointDesc* jointDesc) {
 
+    tinyxml2::XMLElement *mJoint = xmlDoc.NewElement("joint");
+    pxr::UsdPrim prim = stage->GetPrimAtPath(primPath);
+    std::cout << "\t joint : " << primPath << std::endl;
+    std::string parentName = stage->GetPrimAtPath(parentPath).GetName().GetText();
+    mJoint->SetAttribute("name", prim.GetName().GetText());
+    auto getLocalAxis = [](pxr::GfQuatf q, omni::physics::schema::Axis::Enum axis) {
+        switch (axis) {
+        case omni::physics::schema::Axis::Enum::eX:
+            return pxr::GfRotation(q).TransformDir(pxr::GfVec3f(1, 0, 0));
+        case omni::physics::schema::Axis::Enum::eY:
+            return pxr::GfRotation(q).TransformDir(pxr::GfVec3f(0, 1, 0));
+        case omni::physics::schema::Axis::Enum::eZ:
+            return pxr::GfRotation(q).TransformDir(pxr::GfVec3f(0, 0, 1));
+        default: {
+            return pxr::GfVec3f(1, 0, 0);
+        } break;
+        }
+    };
+
+    pxr::GfVec3f localPosePosition;
+    if (jointDesc->body0 == parentPath)
+        localPosePosition = jointDesc->localPose0Position;
+    else
+        localPosePosition = jointDesc->localPose1Position;
+
+    switch (jointDesc->type) {
+    case omni::physics::schema::ObjectType::eJointRevolute: {
+        auto desc = static_cast<const omni::physics::schema::RevoluteJointDesc *>(jointDesc);
+        mJoint->SetAttribute("type", "hinge");
+        mJoint->SetAttribute("axis", Vec3ToStr(getLocalAxis(jointDesc->localPose0Orientation, desc->axis)).c_str());
+        mJoint->SetAttribute("pos", Vec3ToStr(localPosePosition * metersPerUnit).c_str());
+        xmlElement->InsertEndChild(mJoint);
+        break;
+    }
+    case omni::physics::schema::ObjectType::eJointPrismatic: {
+        auto desc = static_cast<const omni::physics::schema::PrismaticJointDesc *>(jointDesc);
+        mJoint->SetAttribute("type", "slide");
+        mJoint->SetAttribute("axis", Vec3ToStr(getLocalAxis(jointDesc->localPose0Orientation, desc->axis)).c_str());
+        mJoint->SetAttribute("pos", Vec3ToStr(localPosePosition * metersPerUnit).c_str());
+        xmlElement->InsertEndChild(mJoint);
+        break;
+    }
+
+    default:
+        CARB_LOG_WARN("unsupported joint encountered in ExportUtils::JointDescToMjcfXml ");
+        break;
+    }
+}
+
+tinyxml2::XMLElement* ExportUtils::addMjcfLink(tinyxml2::XMLDocument& xmlDoc, tinyxml2::XMLElement* parent,
+	const pxr::SdfPath& childPath) {
+	auto desc = usdData.rigidBodyMap[childPath];
+	pxr::UsdPrim prim = stage->GetPrimAtPath(childPath);
+	tinyxml2::XMLElement* mlink = xmlDoc.NewElement("body");
+	mlink->SetAttribute("name", prim.GetName().GetText());
+	mlink->SetAttribute("pos", Vec3ToStr(desc->position * metersPerUnit).c_str());
+	mlink->SetAttribute("quat", QuatToStr(desc->rotation).c_str());
+	auto shapeDesc = usdData.shapeMap[childPath];
+	shapeDescToMjcfXml(xmlDoc, mlink, childPath, shapeDesc);
+	if (desc->rigidBodyEnabled && !desc->kinematicBody && !usdData.visited[childPath]) {
+		tinyxml2::XMLElement* mJoint = xmlDoc.NewElement("freejoint");
+		mlink->InsertEndChild(mJoint);
+	}
+	parent->InsertEndChild(mlink);
+
+	return mlink;
 }
 
 void ExportUtils::addMjcfShapes(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *parent,
                                 const pxr::SdfPath &childPath) {
     pxr::UsdPrim prim = stage->GetPrimAtPath(childPath);
-    std::cout << "processing shape " << prim.GetName().GetText()<<  std::endl;
+    std::cout << "processing shape " << prim.GetName().GetText() << std::endl;
     auto shapeDesc = usdData.shapeMap[childPath];
     shapeDescToMjcfXml(xmlDoc, parent, childPath, shapeDesc);
 }
@@ -279,27 +335,69 @@ void ExportUtils::ExportToMjcf(const std::string fullPath) {
     tinyxml2::XMLElement *pRoot = xmlDoc.NewElement("mujoco");
 
     std::cout << " UrdfExporter usdData.bodyPrims.size() = " << usdData.bodyPrims.size() << std::endl;
-
-    tinyxml2::XMLElement *wBody = xmlDoc.NewElement("worldbody");
-
-    //for (size_t i = 0; i < usdData.shapePrims.size(); i++) {
-    //    std::cout << " eval shape " << usdData.shapePrims[i].GetPath() << std::endl;
-    //    if (usdData.rigidBodyMap.find(usdData.shapePrims[i].GetPath()) == usdData.rigidBodyMap.end()){
-    //        std::cout << " processing shape " << usdData.shapePrims[i].GetPath() << std::endl;
-    //        addMjcfShapes(xmlDoc, wBody, usdData.shapePrims[i].GetPath());
-    //    }
-    //}
-
-    for (size_t i = 0; i < usdData.bodyPrims.size(); i++) {
-        addMjcfLink(xmlDoc, wBody, usdData.bodyPrims[i].GetPath());
-    }
-
-    pRoot->InsertEndChild(wBody);
+    buildKinematicTree(xmlDoc, pRoot);
     xmlDoc.InsertFirstChild(pRoot);
-    tinyxml2::XMLPrinter printer;
-    xmlDoc.Print(&printer);
-    std::string xmlFile = printer.CStr();
+
+
+    // rigid bodies
+    tinyxml2::XMLElement *wBody = xmlDoc.NewElement("worldbody");
+    // for (size_t i = 0; i < usdData.shapePrims.size(); i++) {
+    //     std::cout << " eval shape " << usdData.shapePrims[i].GetPath() << std::endl;
+    //     if (usdData.rigidBodyMap.find(usdData.shapePrims[i].GetPath()) == usdData.rigidBodyMap.end()){
+    //         std::cout << " processing shape " << usdData.shapePrims[i].GetPath() << std::endl;
+    //         addMjcfShapes(xmlDoc, wBody, usdData.shapePrims[i].GetPath());
+    //     }
+    // }
+
+    bool hasAtLeastOneBody = false;
+    for (size_t i = 0; i < usdData.bodyPrims.size(); i++) {
+        if (!usdData.visited[usdData.bodyPrims[i].GetPath()]) {
+            addMjcfLink(xmlDoc, wBody, usdData.bodyPrims[i].GetPath());
+            hasAtLeastOneBody = true;
+        }
+    }
+    if (hasAtLeastOneBody)
+        pRoot->InsertEndChild(wBody);
+
     xmlDoc.SaveFile(filePath.c_str());
+}
+
+void ExportUtils::buildKinematicTree(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement* pRoot) {
+
+    for (auto it = usdData.articulationMap.begin(); it != usdData.articulationMap.end(); it++) {
+
+        tinyxml2::XMLElement *wBody = xmlDoc.NewElement("worldbody");
+        auto root = it->first;
+        std::stack<pxr::SdfPath> rootStack;
+        rootStack.push(root);
+        usdData.visited[root] = true;
+		tinyxml2::XMLElement* currentHead = addMjcfLink(xmlDoc, wBody, root);
+        while (!rootStack.empty()) {
+            auto path = rootStack.top();
+            usdData.visited[path] = true;
+            std::string bodyName = stage->GetPrimAtPath(path).GetName().GetText();
+            std::cout << "visiting " << bodyName << std::endl;
+            rootStack.pop();
+            for (int i = 0; i < usdData.bodyGraph[path].size(); i++) {
+                auto childBodyPath = usdData.bodyGraph[path][i].first;
+                auto connectingJoint = usdData.bodyGraph[path][i].second;
+                std::string childName = stage->GetPrimAtPath(childBodyPath).GetName().GetText();
+                std::cout << "\t child : " << childName << std::endl;
+                if (!usdData.visited[childBodyPath]) {
+
+                    usdData.visited[childBodyPath] = true;
+                    auto bodyDesc = usdData.rigidBodyMap[childBodyPath];
+                    currentHead = addMjcfLink(xmlDoc, currentHead, childBodyPath);
+                    JointDescToMjcfXml(xmlDoc, currentHead, connectingJoint, childBodyPath, usdData.jointMap[connectingJoint]);
+                    rootStack.push(childBodyPath);
+                }
+            }
+        }
+
+        pRoot->InsertEndChild(wBody);
+
+
+    }
 }
 
 ExportUtils::ExportUtils(pxr::UsdStageWeakPtr stage, UsdData &data) : stage(stage), usdData(data) {
