@@ -29,7 +29,7 @@ project_ext_plugin(ext, "omni.example.cpp.usd.plugin")
         root.."/mujoco/include",
      }
     libdirs { "%{target_deps}/nv_usd/release/lib",
-            root.."/mujoco-build/lib/release",
+            root.."/mujoco/lib/release",
             root.."/_build/target-deps/tinyxml2/lib",
             root.."/_build/target-deps/usd_ext_physics/%{cfg.buildcfg}/lib",
         }

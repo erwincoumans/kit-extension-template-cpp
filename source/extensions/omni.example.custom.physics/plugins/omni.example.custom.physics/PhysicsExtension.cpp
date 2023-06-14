@@ -225,13 +225,32 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
         node->onStop();
     }
 
+    int find_mujoco_object_from_prim_path(const std::string& prim_path)
+    {
+        int geom_index = -1;
+        for (int i=0;i<m_scn.ngeom;i++)
+        {
+            const char*geom_name = mj_id2name(m_m, mjOBJ_GEOM, i);
+            if (geom_name == prim_path)
+            {
+                geom_index = i;
+                break;
+            }
+        }
+        return geom_index ;
+    }
     void CARB_ABI convertAndInitializeMujoco() {
 
+        char tmp_path[1024];
+        GetTempPathA(1024,tmp_path);
+
 #if _WIN32
-        file_name = "C:\\Projects\\Repos\\kit-ext\\mujoco_scene";
+        file_name = std::string(tmp_path)+"mujoco_scene";
 #else
-        file_name = "/home/ecoumans/Downloads/mujoco_scene";
+        file_name = "/tmp/mujoco_scene";
 #endif
+        std::cout << "file_name:" << file_name << std::endl;
+
         // std::cout << "exporting to urdf" << std::endl;
         omni::example::custom::physics::ExportUtils exporter(m_stage, m_usdData);
         exporter.ExportToUrdf(file_name + ".urdf");
@@ -241,6 +260,9 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
         char error[MAX_MJ_ERROR_LENGTH] = "";
 
         m_m = mj_loadXML((file_name + ".xml").c_str(), NULL, error, MAX_MJ_ERROR_LENGTH);
+        //todo: extract names from each mujoco object
+        //const char*geom_name = mj_id2name(model, mjOBJ_GEOM, geom_index);
+
         if (m_m) {
             m_d = mj_makeData(m_m);
             mj_forward(m_m, m_d);
@@ -260,6 +282,7 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             mjv_addGeoms(m_m, m_d, &m_vopt, &m_pert, mjCAT_ALL, &m_scn);
         } else {
             std::cout << "Couldn't load " << file_name << std::endl;
+            exit(0);
         }
         const int numPrims = (int)m_usdData.bodyPrims.size();
         printf("m_scn->ngeom (%d), numPrims (%d)\n", (int)m_scn.ngeom, (int)numPrims);
@@ -307,6 +330,9 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
                     //"mSceneDesc.gravityDirection"
                     std::cout << "mSceneDesc.gravityMagnitude=" << m_usdData.sceneDesc.gravityMagnitude << std::endl;
                 }
+
+                assert(m_m);
+                assert(m_d);
                 m_stageInitialized = true;
                 convertAndInitializeMujoco();
             } else {
@@ -347,28 +373,34 @@ class OmniMuJoCoUpdateNode : public omni::physics::schema::IUsdPhysicsListener,
             auto &transform = m_xformOps[i]; // xformable.AddTransformOp();
             auto mat = GfMatrix4d();
             mat.SetIdentity();
-            int geom_index = i; // skip ground plane for now
-            GfVec3d pos =
-                1.0 / metersPerUnit *
-                GfVec3d(m_scn.geoms[geom_index].pos[0], m_scn.geoms[geom_index].pos[1], m_scn.geoms[geom_index].pos[2]);
+            //int geom_index = i; // skip ground plane for now
+            auto ppath = prim.GetPrimPath().GetText();
+            int geom_index = find_mujoco_object_from_prim_path(ppath);
+            assert(geom_index>=0);
+            if (geom_index>=0)
+            {
+                GfVec3d pos =
+                    1.0 / metersPerUnit *
+                    GfVec3d(m_scn.geoms[geom_index].pos[0], m_scn.geoms[geom_index].pos[1], m_scn.geoms[geom_index].pos[2]);
 
-            double v[9] = {(double)m_scn.geoms[geom_index].mat[0], (double)m_scn.geoms[geom_index].mat[1],
-                           (double)m_scn.geoms[geom_index].mat[2], (double)m_scn.geoms[geom_index].mat[3],
-                           (double)m_scn.geoms[geom_index].mat[4], (double)m_scn.geoms[geom_index].mat[5],
-                           (double)m_scn.geoms[geom_index].mat[6], (double)m_scn.geoms[geom_index].mat[7],
-                           (double)m_scn.geoms[geom_index].mat[8]};
-            auto rot = GfMatrix3d(v[0], v[3], v[6], v[1], v[4], v[7], v[2], v[5], v[8]);
-            // mat.SetScale(scale);
-            mat.SetTranslateOnly(pos);
-            mat.SetRotateOnly(rot);
-            // transform.Set(mat);
-            //  std::cout << " prim " << i << " transfrom" << mat << "scale " << scale << std::endl;
-            pxr::UsdTimeCode time = pxr::UsdTimeCode::Default();
-            xformable.AddTransformOp(pxr::UsdGeomXformOp::PrecisionDouble).Set(mat);
-            if (m_usdData.shapeMap.find(prim.GetPath()) != m_usdData.shapeMap.end()) {
-                auto scale = m_usdData.shapeScales[prim.GetPath()];
-                // m_scaleOps[i].Set(scale);
-                xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionFloat).Set((pxr::GfVec3f)scale);
+                double v[9] = {(double)m_scn.geoms[geom_index].mat[0], (double)m_scn.geoms[geom_index].mat[1],
+                               (double)m_scn.geoms[geom_index].mat[2], (double)m_scn.geoms[geom_index].mat[3],
+                               (double)m_scn.geoms[geom_index].mat[4], (double)m_scn.geoms[geom_index].mat[5],
+                               (double)m_scn.geoms[geom_index].mat[6], (double)m_scn.geoms[geom_index].mat[7],
+                               (double)m_scn.geoms[geom_index].mat[8]};
+                auto rot = GfMatrix3d(v[0], v[3], v[6], v[1], v[4], v[7], v[2], v[5], v[8]);
+                // mat.SetScale(scale);
+                mat.SetTranslateOnly(pos);
+                mat.SetRotateOnly(rot);
+                // transform.Set(mat);
+                //  std::cout << " prim " << i << " transfrom" << mat << "scale " << scale << std::endl;
+                pxr::UsdTimeCode time = pxr::UsdTimeCode::Default();
+                xformable.AddTransformOp(pxr::UsdGeomXformOp::PrecisionDouble).Set(mat);
+                if (m_usdData.shapeMap.find(prim.GetPath()) != m_usdData.shapeMap.end()) {
+                    auto scale = m_usdData.shapeScales[prim.GetPath()];
+                    // m_scaleOps[i].Set(scale);
+                    xformable.AddScaleOp(pxr::UsdGeomXformOp::PrecisionFloat).Set((pxr::GfVec3f)scale);
+            }
             }
         }
     }
