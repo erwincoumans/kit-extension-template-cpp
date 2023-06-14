@@ -27,9 +27,9 @@
 // legacy code
 #include "pxr/usd/usd/collectionMembershipQuery.h"
 #include "pxr/usd/usdGeom/xformCache.h"
+#include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/gf/transform.h>
 #include <pxr/base/gf/vec3f.h>
-#include <pxr/base/gf/matrix4f.h>
 #include <pxr/usd/usd/notice.h>
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
@@ -45,12 +45,12 @@
 #pragma warning(pop)
 // normal code
 
-using ArticulationMap = std::map<pxr::SdfPath,const omni::physics::schema::ArticulationDesc*>;
+using ArticulationMap = std::map<pxr::SdfPath, const omni::physics::schema::ArticulationDesc *>;
 using RigidBodyMap = std::map<pxr::SdfPath, const omni::physics::schema::RigidBodyDesc *>;
 using ShapeMap = std::map<pxr::SdfPath, const omni::physics::schema::ShapeDesc *>;
 using ShapeScale = std::map<pxr::SdfPath, pxr::GfVec3f>;
-using JointMap = std::map<pxr::SdfPath, const omni::physics::schema::JointDesc*>;
-using BodyGraph = std::map < pxr::SdfPath, std::vector<std::pair<pxr::SdfPath, pxr::SdfPath>>>;
+using JointMap = std::map<pxr::SdfPath, const omni::physics::schema::JointDesc *>;
+using BodyGraph = std::map<pxr::SdfPath, std::vector<std::pair<pxr::SdfPath, pxr::SdfPath>>>;
 using VisitedBodies = std::map<pxr::SdfPath, bool>;
 
 namespace omni {
@@ -63,26 +63,25 @@ class UsdData {
     omni::physics::schema::SceneDesc sceneDesc;
     pxr::SdfPath scenePath;
     std::vector<pxr::UsdPrim> bodyPrims;
-	std::vector<pxr::UsdPrim> shapePrims;
-	RigidBodyMap rigidBodyMap;
-	ArticulationMap articulationMap;
-	JointMap jointMap;
-	ShapeMap shapeMap;
-	ShapeScale shapeScales;
-	BodyGraph bodyGraph;
-	VisitedBodies visited;
-	void reset() {
-		bodyPrims.clear();
-		shapePrims.clear();
-		rigidBodyMap.clear();
-		articulationMap.clear();
-		jointMap.clear();
-		shapeMap.clear();
-		visited.clear();
-		bodyGraph.clear();
-		shapePrims.clear();
-	}
-
+    std::vector<pxr::UsdPrim> shapePrims;
+    RigidBodyMap rigidBodyMap;
+    ArticulationMap articulationMap;
+    JointMap jointMap;
+    ShapeMap shapeMap;
+    ShapeScale shapeScales;
+    BodyGraph bodyGraph;
+    VisitedBodies visited;
+    void reset() {
+        bodyPrims.clear();
+        shapePrims.clear();
+        rigidBodyMap.clear();
+        articulationMap.clear();
+        jointMap.clear();
+        shapeMap.clear();
+        visited.clear();
+        bodyGraph.clear();
+        shapePrims.clear();
+    }
 };
 
 class ExportUtils {
@@ -103,11 +102,13 @@ class ExportUtils {
                             const omni::physics::schema::ShapeDesc *shapeDesc);
     void shapeDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *xmlElement,
                             const pxr::SdfPath &childPath, const omni::physics::schema::ShapeDesc *shapeDesc);
-	tinyxml2::XMLElement* addMjcfLink(tinyxml2::XMLDocument& xmlDoc, tinyxml2::XMLElement* parent, const pxr::SdfPath& childPath);
+    tinyxml2::XMLElement *addMjcfLink(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *parent,
+                                      const pxr::SdfPath &childPath, const pxr::SdfPath &parentPath = pxr::SdfPath());
     void addMjcfShapes(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *parent, const pxr::SdfPath &childPath);
     void JointDescToMjcfXml(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *xmlElement,
-                            const pxr::SdfPath &primPath, const pxr::SdfPath& parentPath, const omni::physics::schema::JointDesc *jointDesc);
-    void buildKinematicTree(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement* pRoot);
+                            const pxr::SdfPath &primPath, const pxr::SdfPath &parentPath,
+                            const omni::physics::schema::JointDesc *jointDesc);
+    void buildKinematicTree(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement *pRoot);
 };
 
 } // namespace physics
