@@ -15,7 +15,9 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-extension-template-cpp"
 
 [dependencies]
 "omni.usd" = {}
+"omni.usdphysics" = {}
 "usdrt.scenegraph" = {}
+"omni.usd.schema.physics" = {}
 
 # Define the Python modules that this extension provides.
 # C++ only extensions need this just so tests don't fail.

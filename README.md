@@ -1,72 +1,91 @@
-# Omniverse Kit C++ Extension Template
-
-This project contains everything necessary to develop extensions that contain C++ code, along with a number of examples demonstrating best practices for creating them.
+# MuJoCo Simulation Extension for NVIDIA Omniverse
 
 
-## What Are Extensions?
+## Getting started
 
-While an extension can consist of a single `extension.toml` file, most contain Python code, C++ code, or a mixture of both:
+To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+
+Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+
+## Add your files
+
+- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
+- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
 
 ```
-                                                     Kit
-                                                      |
-                   ___________________________________|___________________________________
-                  |                                   |                                   |
-             Python Only                            C++ Only                            Mixed
-(eg. omni.example.python.hello_world)  (eg. omni.example.cpp.hello_world)  (eg. omni.example.cpp.pybind)
+cd existing_repo
+git remote add origin https://gitlab-master.nvidia.com/ecoumans/mujoco-simulation-extension.git
+git branch -M main
+git push -uf origin main
 ```
 
-Extensive documentation detailing what extensions are and how they work can be found [here](https://docs.omniverse.nvidia.com/py/kit/docs/guide/extensions.html).
+## Integrate with your tools
 
+- [ ] [Set up project integrations](https://gitlab-master.nvidia.com/ecoumans/mujoco-simulation-extension/-/settings/integrations)
 
-## Getting Started
+## Collaborate with your team
 
-1. Clone the [GitHub repo](https://github.com/NVIDIA-Omniverse/kit-extension-template-cpp) to your local machine.
-2. Open a command prompt and navigate to the root of your cloned repo.
-3. Run `build.bat` to bootstrap your dev environment and build the example extensions.
-4. Run `_build\{platform}\release\omni.app.example.extension_browser.bat` to open an example kit application.
-    - Run `omni.app.example.viewport.bat` instead if you want the renderer and main viewport to be enabled.
-    - Run `omni.app.kit.dev.bat` instead if you want the full kit developer experience to be enabled.
-5. From the menu, select `Window->Extensions` to open the extension browser window.
-6. Enter `omni.example.cpp` in the search bar at the top of the extension browser window to view the example extensions included with this repo.
+- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
+- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
+- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
+- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
+- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
 
-![Extension Browser](/images/extension_browser.png)
+## Test and Deploy
 
+Use the built-in continuous integration in GitLab.
 
-## Debugging C++ Extensions
+- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
+- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
+- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
+- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
+- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
 
-1. Run `build.bat` (if you haven't already) to generate the solution file.
-2. Open `_compiler\vs2019\kit-extension-template-cpp.sln` using Visual Studio 2019.
-3. Select `omni.app.example.extension_browser` as the startup project (if it isn't already).
-    - Select `omni.app.example.viewport` instead if you want the renderer and main viewport to be enabled.
-    - Select `omni.app.kit.dev` instead if you want the full kit developer experience to be enabled.
-4. Run/debug the example kit application, using the extension browser window to enable/disable extensions.
+***
 
-![Visual Studio Solution](/images/visual_studio_solution.png)
+# Editing this README
 
+When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
-## Creating New C++ Extensions
+## Suggestions for a good README
+Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
-1. Copy one of the existing extension examples to a new folder within the `source/extensions` folder.
-    - The name of the new folder will be the name of your new extension.
-    - The **omni** prefix is reserved for NVIDIA applications and extensions.
-2. Update the fields in your new extension's `config/extension.toml` file as necessary.
-3. Update your new extension's `premake5.lua` file as necessary.
-4. Update your new extension's C++ code in the `plugins` folder as necessary.
-5. Update your new extension's Python code in the `python` folder as necessary.
-6. Update your new extension's Python bindings in the `bindings` folder as necessary.
-7. Update your new extension's documentation in the `docs` folder as necessary.
-8. Run `build.bat` to build your new extension.
-9. Refer to the *Getting Started* section above to open the example kit application and extension browser window.
-10. Enter the name of your new extension in the search bar at the top of the extension browser window to view it.
+## Name
+Choose a self-explaining name for your project.
 
+## Description
+Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
-## Generating Documentation
+## Badges
+On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
 
-1. Run `repo.bat docs` to generate the documentation for the repo, including all extensions it contains.
-    - You can generate the documentation for a single extension by running `repo.bat docs -p {extension_name}`
-2. Open `_build/docs/kit-extension-template-cpp/latest/index.html` to view the generated documentation.
+## Visuals
+Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+
+## Installation
+Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+## Usage
+Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+
+## Support
+Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+
+## Roadmap
+If you have ideas for releases in the future, it is a good idea to list them in the README.
 
 ## Contributing
-The source code for this repository is provided as-is and we are not accepting outside contributions.
+State if you are open to contributions and what your requirements are for accepting them.
 
+For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+
+You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+
+## Authors and acknowledgment
+Show your appreciation to those who have contributed to the project.
+
+## License
+For open source projects, say how it is licensed.
+
+## Project status
+If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

@@ -18,13 +18,6 @@
   <dependency name="usd_ext_physics_release" linkPath="../_build/target-deps/usd_ext_physics/release"/> -->
 
 
-  <import path="../_build/${platform}/${config}/kit/dev/deps/target-deps.packman.xml">
-    <filter include="omni_physics" />
-  </import>
-    <dependency name="omni_physics" linkPath="../_build/target-deps/omni_physics">
-  </dependency>
-
-
   <!-- Import Physics plugins deps -->
   <import path="../_build/target-deps/omni_physics/deps/target-deps.packman.xml">
     <filter include="usd_ext_physics_${config}" />

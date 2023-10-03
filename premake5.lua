@@ -20,3 +20,11 @@ define_app("omni.app.example.viewport")
 
 -- The default kit dev app with extensions from this repo made available.
 define_app("omni.app.kit.dev")
+
+
+define_app("omniverse.kit")
+
+
+repo_build.prebuild_link {
+    { "_build/target-deps/omni_physics/_build/%{platform}/%{config}/extsPhysics", "_build/%{platform}/%{config}/extsPhysics"},
+}

@@ -13,6 +13,30 @@ name = "kit-extension-template-cpp"
 [repo_build.msbuild]
 vs_version = "vs2019"
 
+########################################################################################################################
+# Build tool setup
+########################################################################################################################
+
+[repo_build]
+
+# List of packman projects to pull (in order)
+fetch.packman_host_files_to_pull = [
+    "${root}/deps/host-deps.packman.xml",
+]
+
+fetch.packman_target_files_to_pull = [
+    "${root}/deps/kit-sdk.packman.xml",
+    "${root}/deps/omni-physics.packman.xml",
+    "${root}/deps/target-deps.packman",
+    "${root}/deps/ext-deps.packman.xml",
+    "${root}/deps/repo-deps.packman.xml",
+]
+
+licensing.enabled = true
+licensing.packages = [  "${root}/deps/target-deps.packman.xml" ]
+licensing.fail_on_missing = true
+
+
 [repo_docs]
 name = "Kit Extension Template C++"
 project = "kit-extension-template-cpp"
@@ -36,7 +60,7 @@ extensions = [
     "omni.example.cpp.usd_physics",
     "omni.example.python.hello_world",
     "omni.example.python.ui",
-    "omni.example.custom.physics",
+    "omni.custom.physics",
 ]
 
 [repo_package.packages."platform:windows-x86_64".docs]
